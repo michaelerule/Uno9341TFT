@@ -109,4 +109,4 @@ class Uno_GFX_Button {
   boolean currstate, laststate;
 };
 
-#endif // _UNO_GFX_H
+#endif // _ADAFRUIT_GFX_H
