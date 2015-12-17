@@ -1,13 +1,10 @@
 /*
 Optimize graphics driver for 9341 touch screen LCD driver on AtMega chips. 
 
-The relevant Arduino shield may be located on Ebay as of 2015 using search
+The Arduino shield may be located on Ebay as of 2015 using search
 strings like "2.4 TFT LCD Touch" and costs about $4USD. The bare LCD module
 may be found for $3, without the onboard SD card slot. AtMega chips can be
-found for at little as $1.50USD. This makes the combination of the 9341 
-screens and the AtMega one of the cheapest embedded touch solutions 
-available as of 2015, although recent advancements in lowering the cost of
-Raspberry PI mean that the AVR based controller might soon become obsolete.
+found for at little as $1.50USD. 
 
 The 9341 touch breakout is limited. The pin for synchronizing display 
 updates with display refresh is not made available. The AtMega does
