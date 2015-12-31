@@ -37,7 +37,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "Uno_GFX.h"
+#include "Uno_GFX.h"    // Core graphics library
+
 #include "glcdfont.c"
 #ifdef __AVR__
  #include <avr/pgmspace.h>
@@ -72,12 +73,10 @@ void Uno_GFX::drawCircle(int16_t x0, int16_t y0, int16_t r,
   int16_t ddF_y = -2 * r;
   int16_t x = 0;
   int16_t y = r;
-
   drawPixel(x0  , y0+r, color);
   drawPixel(x0  , y0-r, color);
   drawPixel(x0+r, y0  , color);
   drawPixel(x0-r, y0  , color);
-
   while (x<y) {
     if (f >= 0) {
       y--;
@@ -87,7 +86,6 @@ void Uno_GFX::drawCircle(int16_t x0, int16_t y0, int16_t r,
     x++;
     ddF_x += 2;
     f += ddF_x;
-  
     drawPixel(x0 + x, y0 + y, color);
     drawPixel(x0 - x, y0 + y, color);
     drawPixel(x0 + x, y0 - y, color);
@@ -106,7 +104,6 @@ void Uno_GFX::drawCircleHelper( int16_t x0, int16_t y0,
   int16_t ddF_y = -2 * r;
   int16_t x     = 0;
   int16_t y     = r;
-
   while (x<y) {
     if (f >= 0) {
       y--;
@@ -135,6 +132,7 @@ void Uno_GFX::drawCircleHelper( int16_t x0, int16_t y0,
   }
 }
 
+
 void Uno_GFX::fillCircle(int16_t x0, int16_t y0, int16_t r,
 			      uint16_t color) {
   drawFastVLine(x0, y0-r, 2*r+1, color);
@@ -144,7 +142,6 @@ void Uno_GFX::fillCircle(int16_t x0, int16_t y0, int16_t r,
 // Used to do circles and roundrects
 void Uno_GFX::fillCircleHelper(int16_t x0, int16_t y0, int16_t r,
     uint8_t cornername, int16_t delta, uint16_t color) {
-
   int16_t f     = 1 - r;
   int16_t ddF_x = 1;
   int16_t ddF_y = -2 * r;
@@ -281,7 +278,6 @@ void Uno_GFX::fillRoundRect(int16_t x, int16_t y, int16_t w,
 				 int16_t h, int16_t r, uint16_t color) {
   // smarter version
   fillRect(x+r, y, w-2*r, h, color);
-
   // draw four corners
   fillCircleHelper(x+w-r-1, y+r, r, 1, h-2*r-1, color);
   fillCircleHelper(x+r    , y+r, r, 2, h-2*r-1, color);
@@ -297,33 +293,15 @@ void Uno_GFX::drawTriangle(int16_t x0, int16_t y0,
 }
 
 // Fill a triangle
-void Uno_GFX::fillTriangle ( int16_t x0, int16_t y0,
-				  int16_t x1, int16_t y1,
-				  int16_t x2, int16_t y2, uint16_t color) {
-
-  int16_t a, b, y, last;
-
-  // Sort coordinates by Y order (y2 >= y1 >= y0)
-  if (y0 > y1) {
-    swap(y0, y1); swap(x0, x1);
-  }
-  if (y1 > y2) {
-    swap(y2, y1); swap(x2, x1);
-  }
-  if (y0 > y1) {
-    swap(y0, y1); swap(x0, x1);
-  }
-
-  if(y0 == y2) { // Handle awkward all-on-same-line case as its own thing
-    a = b = x0;
-    if(x1 < a)      a = x1;
-    else if(x1 > b) b = x1;
-    if(x2 < a)      a = x2;
-    else if(x2 > b) b = x2;
-    drawFastHLine(a, y0, b-a+1, color);
-    return;
-  }
-
+void Uno_GFX::fillTriangle ( 
+    int16_t x0, int16_t y0,
+    int16_t x1, int16_t y1,
+    int16_t x2, int16_t y2, uint16_t color) {
+  int16_t a, b, y;
+  if (y0 > y1) {swap(y0, y1); swap(x0, x1);}
+  if (y1 > y2) {swap(y2, y1); swap(x2, x1);}
+  if (y0 > y1) {swap(y0, y1); swap(x0, x1);}
+  if(y0 == y2)  return;
   int16_t
     dx01 = x1 - x0,
     dy01 = y1 - y0,
@@ -334,98 +312,27 @@ void Uno_GFX::fillTriangle ( int16_t x0, int16_t y0,
   int32_t
     sa   = 0,
     sb   = 0;
-
-  // For upper part of triangle, find scanline crossings for segments
-  // 0-1 and 0-2.  If y1=y2 (flat-bottomed triangle), the scanline y1
-  // is included here (and second loop will be skipped, avoiding a /0
-  // error there), otherwise scanline y1 is skipped here and handled
-  // in the second loop...which also avoids a /0 error here if y0=y1
-  // (flat-topped triangle).
-  if(y1 == y2) last = y1;   // Include y1 scanline
-  else         last = y1-1; // Skip it
-
-  for(y=y0; y<=last; y++) {
+  int16_t last = y1==y2? y1:y1-1;
+  // Skip the first line to avoid triangle overlap in meshes
+  sa += dx01;
+  sb += dx02;
+  for(y=y0+1; y<=last; y++) {
     a   = x0 + sa / dy01;
     b   = x0 + sb / dy02;
     sa += dx01;
     sb += dx02;
-    /* longhand:
-    a = x0 + (x1 - x0) * (y - y0) / (y1 - y0);
-    b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
-    */
     if(a > b) swap(a,b);
-    drawFastHLine(a, y, b-a+1, color);
+    drawFastHLine(a, y, b-a, color);
   }
-
-  // For lower part of triangle, find scanline crossings for segments
-  // 0-2 and 1-2.  This loop is skipped if y1=y2.
   sa = dx12 * (y - y1);
   sb = dx02 * (y - y0);
-  for(; y<=y2; y++) {
+  for(; y<y2; y++) {
     a   = x1 + sa / dy12;
     b   = x0 + sb / dy02;
     sa += dx12;
     sb += dx02;
-    /* longhand:
-    a = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
-    b = x0 + (x2 - x0) * (y - y0) / (y2 - y0);
-    */
     if(a > b) swap(a,b);
-    drawFastHLine(a, y, b-a+1, color);
-  }
-}
-
-void Uno_GFX::drawBitmap(int16_t x, int16_t y,
-			      const uint8_t *bitmap, int16_t w, int16_t h,
-			      uint16_t color) {
-
-  int16_t i, j, byteWidth = (w + 7) / 8;
-
-  for(j=0; j<h; j++) {
-    for(i=0; i<w; i++ ) {
-      if(pgm_read_byte(bitmap + j * byteWidth + i / 8) & (128 >> (i & 7))) {
-        drawPixel(x+i, y+j, color);
-      }
-    }
-  }
-}
-
-// Draw a 1-bit color bitmap at the specified x, y position from the
-// provided bitmap buffer (must be PROGMEM memory) using color as the
-// foreground color and bg as the background color.
-void Uno_GFX::drawBitmap(int16_t x, int16_t y,
-            const uint8_t *bitmap, int16_t w, int16_t h,
-            uint16_t color, uint16_t bg) {
-
-  int16_t i, j, byteWidth = (w + 7) / 8;
-  
-  for(j=0; j<h; j++) {
-    for(i=0; i<w; i++ ) {
-      if(pgm_read_byte(bitmap + j * byteWidth + i / 8) & (128 >> (i & 7))) {
-        drawPixel(x+i, y+j, color);
-      }
-      else {
-      	drawPixel(x+i, y+j, bg);
-      }
-    }
-  }
-}
-
-//Draw XBitMap Files (*.xbm), exported from GIMP,
-//Usage: Export from GIMP to *.xbm, rename *.xbm to *.c and open in editor.
-//C Array can be directly used with this function
-void Uno_GFX::drawXBitmap(int16_t x, int16_t y,
-                              const uint8_t *bitmap, int16_t w, int16_t h,
-                              uint16_t color) {
-  
-  int16_t i, j, byteWidth = (w + 7) / 8;
-  
-  for(j=0; j<h; j++) {
-    for(i=0; i<w; i++ ) {
-      if(pgm_read_byte(bitmap + j * byteWidth + i / 8) & (1 << (i % 8))) {
-        drawPixel(x+i, y+j, color);
-      }
-    }
+    drawFastHLine(a, y, b-a, color);
   }
 }
 
@@ -521,10 +428,6 @@ void Uno_GFX::setTextWrap(boolean w) {
   wrap = w;
 }
 
-uint8_t Uno_GFX::getRotation(void) const {
-  return rotation;
-}
-
 // Enable (or disable) Code Page 437-compatible charset.
 // There was an error in glcdfont.c for the longest time -- one character
 // (#176, the 'light shade' block) was missing -- this threw off the index
@@ -549,68 +452,4 @@ void Uno_GFX::invertDisplay(boolean i) {
   // Do nothing, must be subclassed if supported
 }
 
-/***************************************************************************/
-// code for the GFX button UI element
 
-Uno_GFX_Button::Uno_GFX_Button(void) {
-   _gfx = 0;
-}
-
-void Uno_GFX_Button::initButton(Uno_GFX *gfx,
-					  int16_t x, int16_t y, 
-					  uint8_t w, uint8_t h, 
-					  uint16_t outline, uint16_t fill, 
-					  uint16_t textcolor,
-					  char *label, uint8_t textsize)
-{
-  _x = x;
-  _y = y;
-  _w = w;
-  _h = h;
-  _outlinecolor = outline;
-  _fillcolor = fill;
-  _textcolor = textcolor;
-  _textsize = textsize;
-  _gfx = gfx;
-  strncpy(_label, label, 9);
-  _label[9] = 0;
-}
-
- 
- void Uno_GFX_Button::drawButton(boolean inverted) {
-   uint16_t fill, outline, text;
-
-   if (! inverted) {
-     fill = _fillcolor;
-     outline = _outlinecolor;
-     text = _textcolor;
-   } else {
-     fill =  _textcolor;
-     outline = _outlinecolor;
-     text = _fillcolor;
-   }
-
-   _gfx->fillRoundRect(_x - (_w/2), _y - (_h/2), _w, _h, min(_w,_h)/4, fill);
-   _gfx->drawRoundRect(_x - (_w/2), _y - (_h/2), _w, _h, min(_w,_h)/4, outline);
-   
-   _gfx->setCursor(_x - strlen(_label)*3*_textsize, _y-4*_textsize);
-   _gfx->setTextColor(text);
-   _gfx->setTextSize(_textsize);
-   _gfx->print(_label);
- }
-
-boolean Uno_GFX_Button::contains(int16_t x, int16_t y) {
-   if ((x < (_x - _w/2)) || (x > (_x + _w/2))) return false;
-   if ((y < (_y - _h)) || (y > (_y + _h/2))) return false;
-   return true;
- }
-
-
- void Uno_GFX_Button::press(boolean p) {
-   laststate = currstate;
-   currstate = p;
- }
- 
- boolean Uno_GFX_Button::isPressed() { return currstate; }
- boolean Uno_GFX_Button::justPressed() { return (currstate && !laststate); }
- boolean Uno_GFX_Button::justReleased() { return (!currstate && laststate); }

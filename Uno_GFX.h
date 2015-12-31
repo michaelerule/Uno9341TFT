@@ -8,7 +8,9 @@
  #include "WProgram.h"
 #endif
 
-#define swap(a, b) { int16_t t=a; a=b; b=t; }
+#define swap(a, b)    { int16_t  t=a; a=b; b=t; }
+#define swapU8(a, b)  { uint8_t  t=a; a=b; b=t; }
+#define swapU16(a, b) { uint16_t t=a; a=b; b=t; }
 
 class Uno_GFX : public Print {
 
@@ -16,9 +18,10 @@ class Uno_GFX : public Print {
 
   Uno_GFX(int16_t w, int16_t h); // Constructor
 
-  // This MUST be defined by the subclass:
+  // Low-level graphics commands
+  // These MUST be defined by the subclass.
   virtual void drawPixel(int16_t x, int16_t y, uint16_t color) = 0;
-
+  
   // These MAY be overridden by the subclass to provide device-specific
   // optimized code.  Otherwise 'generic' versions are used.
   virtual void
@@ -29,20 +32,21 @@ class Uno_GFX : public Print {
     fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color),
     fillScreen(uint16_t color),
     invertDisplay(boolean i);
-
   // These exist only with Uno_GFX (no subclass overrides)
   void
     drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color),
     drawCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, uint16_t color),
     fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color),
     fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int16_t delta, uint16_t color),
+    
+    // Triangle rendering commands
     drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color),
     fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color),
+    
     drawRoundRect(int16_t x0, int16_t y0, int16_t w, int16_t h, int16_t radius, uint16_t color),
     fillRoundRect(int16_t x0, int16_t y0, int16_t w, int16_t h, int16_t radius, uint16_t color),
-    drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color),
-    drawBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color, uint16_t bg),
-    drawXBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color),
+    
+    // Text rendering commands
     drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size),
     setCursor(int16_t x, int16_t y),
     setTextColor(uint16_t c),
@@ -59,8 +63,6 @@ class Uno_GFX : public Print {
 
   int16_t height(void) const;
   int16_t width(void) const;
-
-  uint8_t getRotation(void) const;
 
   // get current cursor position (get rotation safe maximum values, using: width() for x, height() for y)
   int16_t getCursorX(void) const;
@@ -82,31 +84,5 @@ class Uno_GFX : public Print {
     _cp437; // If set, use correct CP437 charset (default is off)
 };
 
-class Uno_GFX_Button {
-
- public:
-  Uno_GFX_Button(void);
-  void initButton(Uno_GFX *gfx, int16_t x, int16_t y, 
-		      uint8_t w, uint8_t h, 
-		      uint16_t outline, uint16_t fill, uint16_t textcolor,
-		      char *label, uint8_t textsize);
-  void drawButton(boolean inverted = false);
-  boolean contains(int16_t x, int16_t y);
-
-  void press(boolean p);
-  boolean isPressed();
-  boolean justPressed();
-  boolean justReleased();
-
- private:
-  Uno_GFX *_gfx;
-  int16_t _x, _y;
-  uint16_t _w, _h;
-  uint8_t _textsize;
-  uint16_t _outlinecolor, _fillcolor, _textcolor;
-  char _label[10];
-
-  boolean currstate, laststate;
-};
 
 #endif // _UNO_GFX_H

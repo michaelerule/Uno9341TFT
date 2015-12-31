@@ -1,13 +1,10 @@
 /*
 Optimize graphics driver for 9341 touch screen LCD driver on AtMega chips. 
 
-The relevant Arduino shield may be located on Ebay as of 2015 using search
+The Arduino shield may be located on Ebay as of 2015 using search
 strings like "2.4 TFT LCD Touch" and costs about $4USD. The bare LCD module
 may be found for $3, without the onboard SD card slot. AtMega chips can be
-found for at little as $1.50USD. This makes the combination of the 9341 
-screens and the AtMega one of the cheapest embedded touch solutions 
-available as of 2015, although recent advancements in lowering the cost of
-Raspberry PI mean that the AVR based controller might soon become obsolete.
+found for at little as $1.50USD. 
 
 The 9341 touch breakout is limited. The pin for synchronizing display 
 updates with display refresh is not made available. The AtMega does
@@ -41,33 +38,22 @@ Drawbacks:
     Port write optimizations mean that spurious interactions with 
         Other peripherals may occur in more advanced setups, although 
         so far this has not emerged as a problem in testing
-        
 This file is derived from Adafruit's driver. Please support Adafruit by
 purchasing their products. Please respect their licensing statements.
-
 In general, I have not cleaned this code or prepared it for release. It 
 still contains vestigial code related to driving other LCD displays, and
 for other microcontroller environments, but it will not operate on these 
 platforms. I am releasing thie project before performing a code clean-up.
-
 -- Mrule 2015/12/15
-
 Graphics library by ladyada/adafruit with init code from Rossum
 MIT license
 */
 
-#if defined(__SAM3X8E__)
-	#include <include/pio.h>
-    #define PROGMEM
-    #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
-    #define pgm_read_word(addr) (*(const unsigned short *)(addr))
-#endif
-#ifdef __AVR__
-	#include <avr/pgmspace.h>
-#endif
+#include <avr/pgmspace.h>
 #include "pins_arduino.h"
 #include "wiring_private.h"
 #include "Uno_TFTLCD.h"
+
 #include "pin_magic.h"
 
 #define TFTWIDTH   240
@@ -75,13 +61,12 @@ MIT license
 
 // LCD controller chip identifiers
 #define ID_9341    2
-#define ID_UNKNOWN 0xFF
 
 #include "registers.h"
 
 // Turn this on to activate software clipping to screen bounds
 // Leave this on something weird is happening without it
-//#define DO_CLIP
+#define DO_CLIP
 
 // Enable this to use only the fast color pallet. Uses only the top
 // 6 bits of color data and forces the high and low bytes to be the same
@@ -197,6 +182,7 @@ void Uno_TFTLCD::begin(uint16_t id) {
   PORTB=PORTD=0x39;
   PORTC=0b1110011;
 #endif
+
 }
 
 void Uno_TFTLCD::reset(void) {
@@ -288,18 +274,29 @@ void Uno_TFTLCD::setLR(void) {
  */ 
 inline void Uno_TFTLCD::flood(uint16_t color, uint32_t len) {
   uint16_t blocks;
-  uint8_t  i, hi = color >> 8, lo = color;
+  uint8_t  i;
   WRITE_BUS(BEGIN_PIXEL_DATA);
   CLOCK_COMMAND;
   // Write first pixel normally, decrement counter by 1
+#ifdef TURBO_MODE
+  PORTD=color;
+  CLOCK_DATA;
+  CLOCK_DATA;
+#else
+  uint8_t hi = color >> 8;
+  uint8_t lo = color;
   WRITE_BUS(hi);
   CLOCK_DATA;
   WRITE_BUS(lo);
   CLOCK_DATA;
-  
+#endif
+
   len--;
   blocks = (uint16_t)(len / 64); // 64 pixels/block
+  
+#ifndef TURBO_MODE
   if(hi == lo) {
+#endif
     // High and low bytes are identical.  Leave prior data
     // on the port(s) and just toggle the write strobe.
     while(blocks--) {
@@ -316,6 +313,7 @@ inline void Uno_TFTLCD::flood(uint16_t color, uint32_t len) {
         CLOCK_DATA;
         CLOCK_DATA;
     }
+#ifndef TURBO_MODE
   } else {
     while(blocks--) {
       i = 16; // 64 pixels/block / 4 pixels/pass
@@ -349,7 +347,9 @@ inline void Uno_TFTLCD::flood(uint16_t color, uint32_t len) {
     }
   }
   CS_IDLE;
+#endif
 }
+
 
 /*
  Draw a horizontal line using flood feel. We can leave the lower right 
@@ -357,6 +357,7 @@ inline void Uno_TFTLCD::flood(uint16_t color, uint32_t len) {
  window start at the correct row and column. Therefore, the last two
  bytes corresponding to the upper limits are omitted.
  */
+/*
 void Uno_TFTLCD::drawFastHLine(int16_t x, int16_t y, int16_t length,
   uint16_t color)
 {
@@ -378,6 +379,9 @@ void Uno_TFTLCD::drawFastHLine(int16_t x, int16_t y, int16_t length,
     SET_Y_LOCATION(y);
     flood(color,length);
 }
+*/
+
+
 
 void Uno_TFTLCD::drawFastVLine(int16_t x, int16_t y, int16_t length,
   uint16_t color)
@@ -405,6 +409,7 @@ void Uno_TFTLCD::drawFastVLine(int16_t x, int16_t y, int16_t length,
     flood(color, length);
     RESET_X_RANGE;
 }
+
 
 void Uno_TFTLCD::fillRect(int16_t x1, int16_t y1, int16_t w, int16_t h, 
   uint16_t fillcolor) {
@@ -450,34 +455,6 @@ void Uno_TFTLCD::fillScreen(uint16_t color) {
     flood(color, (long)TFTWIDTH * (long)TFTHEIGHT);
 }
 
-uint8_t Uno_TFTLCD::readMaskBit(int16_t x, int16_t y) {
-    SET_X_LOCATION(x);
-    SET_Y_LOCATION(y);
-    // Send read command    
-    PORTC=READY_COMMAND;
-    WRITE_BUS(BEGIN_READ_DATA);
-    PORTC=REQUEST_READ; //Clock in command and set the RD clock low
-    // Set ports to receive
-    // We only care about the top 6 bits so we only read PORTD
-    DDRD=0;
-    DELAY3
-    PORTC=SEND_DATA; // Read clock rising edge
-    DELAY3
-    PORTC=0b1110110; // Read clock low
-    DELAY3
-    PORTC=SEND_DATA; // Read clock rising edge
-    DELAY3
-    PORTC=0b1110110; // Read clock low
-    // Make this larger if data isn't coming across cleanly
-    DELAY3
-    DELAY3
-    DELAY3
-    DELAY3
-    uint8_t R = PIND;
-    DDRD=~0;
-    return R;
-}
-
 void Uno_TFTLCD::drawPixel(int16_t x0, int16_t y0, uint16_t color) {
     // Clip
 #ifdef DO_CLIP
@@ -505,22 +482,19 @@ void Uno_TFTLCD::drawPixel(int16_t x0, int16_t y0, uint16_t color) {
         if ((R&0b1000)==mask_flag) return;
     }    
     // Draw Pixel data only if mask flag does not match
-#ifdef TURBO_MODE
     WRITE_BUS(BEGIN_PIXEL_DATA);
     CLOCK_COMMAND;
+#ifdef TURBO_MODE
     PORTD=color;
     CLOCK_DATA;
     CLOCK_DATA;
 #else
-    WRITE_BUS(BEGIN_PIXEL_DATA);
-    CLOCK_COMMAND;
     WRITE_BUS(color>>8);
     CLOCK_DATA;
     WRITE_BUS(color);
     CLOCK_DATA;
 #endif
 }
-
 
 void Uno_TFTLCD::colorPixel(uint16_t color) {
     if (masking_on) {
@@ -550,6 +524,91 @@ void Uno_TFTLCD::colorPixel(uint16_t color) {
     WRITE_BUS(color);
     CLOCK_DATA;
 #endif
+}
+
+#define READ_MEMORY_CONTINUE 0x3E
+
+
+void Uno_TFTLCD::drawFastHLine(int16_t x, int16_t y, int16_t length,
+  uint16_t color)
+{
+    if (length<=1) return;
+    length--;
+    
+    int16_t x2;
+    uint8_t hi = color>>8;
+    uint8_t lo = color;
+#ifdef DO_CLIP
+    if((length<=0)||(y<0)||(y>= _height)||(x>=_width)||((x2=(x+length-1))<0)) return;
+    if(x<0) {length+=x; x=0;}
+    if(x2>=_width) {x2=_width-1; length=x2-x+1;}
+#endif    
+    SET_Y_LOCATION(y);
+    if (masking_on) {
+        // When drawing triangles, large contiguous areas will 
+        // be masked out. So instead we store a list of offsets and
+        // lengths that are /not/ masked out, and just draw those
+        // To do this, we start reading the color data. If it is masked, 
+        // we continue until it is not masked, and mark that position.
+        // We keep reading unmasked data until we come to a masked pixel,
+        // or are at the end of the line. We then draw the pixel data.
+        // We use the continue read data to pick up where we left off.
+        int in_segment=0;
+        int start=x;
+        int stop =x+length;
+        int i=x;
+        
+        while (i<stop) {
+            // Begin reading pixel information
+            SET_X_LOCATION(i);
+            WRITE_BUS(BEGIN_READ_DATA);
+            CLOCK_COMMAND;
+            DDRD =0;         // Configure port for reading
+            PORTC=0b1110110; // READ DUMMY BYTE
+            // Read HIGH byte of color data
+            PORTC=SEND_DATA; // Read clock high (rising edge)
+            DELAY1;
+            PORTC=0b1110110; // Read clock low (falling edge)
+            while (i<stop) {
+                // Get red channel data ( 3rd bit is mask flag )
+                uint8_t is_masked = (PIND&0b1000)==mask_flag;
+                // Skip to next byte -- clock for LOW byte but don't wait to read it
+                PORTC=SEND_DATA; // Read clock high (rising edge)
+                PORTC=0b1110110; // Read clock low (falling edge)
+                // Start reading the next color now
+                PORTC=SEND_DATA; // Read clock high (rising edge)
+                if (is_masked) {
+                    if (in_segment) {
+                        DDRD=~0;
+                        SET_X_LOCATION(start);
+                        flood(color,i-start);
+                        in_segment=0;
+                        start=i;
+                        i++;
+                        break;
+                    }
+                }
+                // pixel is not masked, we should remember to draw it
+                else if (!in_segment) {
+                    // this is the first unmasked pixel we've encountered
+                    // remember it's location.
+                    start = i;
+                    in_segment = 1;
+                }     
+                PORTC=0b1110110; // Read clock low (falling edge)   
+                i++;
+            }
+        }
+        DDRD=~0; // Restore PORTD as an output
+        // take care of any pixels at the end.
+        if (in_segment) {
+            SET_X_LOCATION(start);
+            flood(color,i-start);
+        }
+    } else {
+        SET_X_LOCATION(x);
+        flood(color,length);
+    }
 }
 
 

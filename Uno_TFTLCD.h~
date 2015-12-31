@@ -17,7 +17,7 @@
 // **** IF USING THE LCD BREAKOUT BOARD, COMMENT OUT THIS NEXT LINE. ****
 // **** IF USING THE LCD SHIELD, LEAVE THE LINE ENABLED:             ****
 
-// #define USE_ADAFRUIT_SHIELD_PINOUT 1
+//#define USE_ADAFRUIT_SHIELD_PINOUT 1
 
 #define color565(r, g ,b) ((((r)&0xF8)<<8)|(((g)&0xFC)<<3)|((b)>>3))
 
@@ -25,15 +25,13 @@
 // Using values with identical high and low bytes gives faster
 // Rendering of filled regions
 #define BLACK   0b0000000000000000
-#define BLUE    0b0001000000010000
+#define BLUE    0b0001001100010011
 #define RED     0b1110000011100000
-#define GREEN   0b0000010000000100
-#define CYAN    0b0001010000010100
+#define GREEN   0b0000011100000111
+#define CYAN    0b0001011100010111
 #define MAGENTA 0b1111000011110000
-#define YELLOW  0b1110010011100100
+#define YELLOW  0b1110011111100111
 #define WHITE   0b1111011111110111
-
-#define GREY    0b0110001101101011
 #define MASK   ~0b1111011111110111
 
 // Inline assembly commands for inserting very short delays.
@@ -100,7 +98,6 @@ PC0: Chip select line. 1 for enabel. Left high by driver code.
 #define SEND_COMMAND      0b1110011
 #define READY_DATA        0b1110101
 #define SEND_DATA         0b1110111
-#define READY_READ        0b1110110
 #define REQUEST_READ      0b1110010
 
 #define WRITE_BUS(b)      PORTB=PORTD=(b)
@@ -119,15 +116,13 @@ PC0: Chip select line. 1 for enabel. Left high by driver code.
  The 9341 accepts 1-byte commands. Here we define the commonly aliases for
  the commonly used commands. 
  */
-
 #define SET_COLUMN_ADDRESS_WINDOW 0x2A
 #define SET_ROW_ADDRESS_WINDOW    0x2B
 #define BEGIN_PIXEL_DATA          0x2C
 #define BEGIN_READ_DATA           0x2E
-#define READ_MEMORY_CONTINUE      0x3E
 
 // Move the left bound of drawing window to 0
-#define ZERO_X() {\
+#define ZERO_X {\
     WRITE_BUS(SET_COLUMN_ADDRESS_WINDOW);\
     CLOCK_COMMAND;\
     WRITE_BUS(0);\
@@ -136,17 +131,12 @@ PC0: Chip select line. 1 for enabel. Left high by driver code.
 }
 
 // Move the upper bound of drawing window to 0
-#define ZERO_Y() {\
+#define ZERO_Y {\
     WRITE_BUS(SET_ROW_ADDRESS_WINDOW);\
     CLOCK_COMMAND;\
     WRITE_BUS(0);\
     CLOCK_DATA;\
     CLOCK_DATA;\
-}
-
-#define ZERO_XY() {\
-    ZERO_X();\
-    ZERO_Y();\
 }
 
 // Set the X location 
@@ -170,12 +160,6 @@ PC0: Chip select line. 1 for enabel. Left high by driver code.
     CLOCK_DATA;\
 }
 
-// Set both X and Y location
-#define SET_XY_LOCATION(x,y) {\
-    SET_X_LOCATION(x);\
-    SET_Y_LOCATION(y)\
-}
-
 // Set X range
 #define SET_X_RANGE(x1,x2) {\
     WRITE_BUS(SET_COLUMN_ADDRESS_WINDOW);\
@@ -190,14 +174,8 @@ PC0: Chip select line. 1 for enabel. Left high by driver code.
     CLOCK_DATA;\
 }
 
-// Set X range and Y location
-#define SET_XY_RANGE(x1,x2,y) {\
-    SET_X_RANGE(x1,x2);\
-    SET_Y_LOCATION(y);\
-}
-
 // Sets X range to (0,239)
-#define RESET_X_RANGE() {\
+#define RESET_X_RANGE {\
     WRITE_BUS(SET_COLUMN_ADDRESS_WINDOW);\
     CLOCK_COMMAND;\
     WRITE_BUS(0);\
@@ -208,54 +186,6 @@ PC0: Chip select line. 1 for enabel. Left high by driver code.
     CLOCK_DATA;\
 }
 
-// Start sending pixel data
-#define START_PIXEL_DATA() {\
-    WRITE_BUS(BEGIN_PIXEL_DATA);\
-    CLOCK_COMMAND;\
-}
-
-#define SEND_PIXEL(color) {\
-    WRITE_BUS(color>>8);\
-    CLOCK_DATA;\
-    WRITE_BUS(color);\
-    CLOCK_DATA;\
-}
-
-#define SEND_PAIR(hi,lo) {\
-    WRITE_BUS(hi); CLOCK_DATA; WRITE_BUS(lo); CLOCK_DATA;\
-}
-
-#define SEND_FAST(c) {\
-    PORTD=PORTB=(c);\
-    CLOCK_DATA;\
-    CLOCK_DATA;\
-}
-
-// Start reading pixel data
-#define START_READING() {\
-    WRITE_BUS(BEGIN_READ_DATA);\
-    CLOCK_COMMAND;\
-    DDRD=0;\
-    PORTC=READY_READ;\
-    PORTC=SEND_DATA;\
-    DELAY1;\
-    PORTC=READY_READ;\
-}
-
-// Finish reading pixel data
-#define STOP_READING() {\
-    DDRD=~0;\
-}
-
-#define CLOCK_1   {CLOCK_DATA; CLOCK_DATA;};
-#define CLOCK_2   {CLOCK_1   CLOCK_1};
-#define CLOCK_4   {CLOCK_2   CLOCK_2};
-#define CLOCK_8   {CLOCK_4   CLOCK_4};
-#define CLOCK_16  {CLOCK_8   CLOCK_8};
-#define CLOCK_32  {CLOCK_16  CLOCK_16};
-#define CLOCK_64  {CLOCK_32  CLOCK_32};
-#define CLOCK_128 {CLOCK_64  CLOCK_64};
-#define CLOCK_256 {CLOCK_128 CLOCK_128};
 
 class Uno_TFTLCD : public Uno_GFX {
 
@@ -263,65 +193,30 @@ class Uno_TFTLCD : public Uno_GFX {
 
   Uno_TFTLCD(uint8_t cs, uint8_t cd, uint8_t wr, uint8_t rd, uint8_t rst);
   Uno_TFTLCD(void);
-  
-  // Masked rendering is used to erase regions to background, skipping
-  // pixels from the current frame.
-  // Overdraw rendering is used to avoid redrawing parts of the current
-  // frame that have already been rendered. 
-  
-  // State variables for controlling masked and overdrawn rendering
-  uint8_t  mask_flag = 0;
-  uint8_t  do_masking = 0;  
-  uint8_t  do_overdraw = 0;  
-  uint16_t background_color = 0;
-  uint16_t foreground_color = WHITE;
-  uint8_t  use_low_color_mode = 0;
-  
-  // Functions for controlling masked and overdrawn rendering
-  void     overdraw_on();
-  void     overdraw_off();
-  void     masking_on();
-  void     masking_off();
-  void     flip_mask();
-  
-  // Drawing routines
+  uint8_t  mask_flag;
+  uint8_t  masking_on;  
+  void     begin(uint16_t id = 0x9325);
   void     drawPixel(int16_t x, int16_t y, uint16_t color);
-  void     colorPixel(uint16_t y, uint16_t color);
+  void     colorPixel(uint16_t color);
   void     drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
-  void     drawFastHLine(int16_t x0, int16_t y0, int16_t w, uint16_t color);
-  void     drawFastVLine(int16_t x0, int16_t y0, int16_t h, uint16_t color);
+  //void     drawFastHLine(int16_t x0, int16_t y0, int16_t w, uint16_t color);
+  //void     drawFastVLine(int16_t x0, int16_t y0, int16_t h, uint16_t color);
   void     fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t c);
   void     fillScreen(uint16_t color);
-  
-  // System configuration
-  void     begin(uint16_t id = 0x9325);
   void     reset(void);
   void     setRegisters8(uint8_t *ptr, uint8_t n);
   void     setRegisters16(uint16_t *ptr, uint8_t n);
-  void     low_color_mode_on();
-  void     low_color_mode_off();
-  void     toggle_low_color_mode();
-
-  // These methods are public in order for BMP examples to work:
+       // These methods are public in order for BMP examples to work:
   void     setAddrWindow(int x1, int y1, int x2, int y2);
   void     pushColors(uint16_t *data, uint8_t len, boolean first);
 
-  // Functions for reading color data
-  uint16_t readPixel(int16_t x, int16_t y);
-
-  // Fast drawing routines. No clipping, reduced color accuracy.
-  void     fastFlood(uint8_t color, uint16_t length);
-  void     fastPixel(uint8_t x, uint16_t y, uint8_t color);
-  void     fastLine(uint8_t x0, uint16_t y0, uint8_t x1, uint16_t y1, uint8_t color);
-  void     fastFillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t color);
-  void     fastDrawTriangle(uint8_t x0, uint16_t y0, uint8_t x1, uint16_t y1, uint8_t x2, uint16_t y2, uint8_t color);
-  void     fastestHLine(uint8_t x0, uint16_t y0, uint16_t w, uint8_t color);
-  void     fastestVLine(uint8_t x0, uint16_t y0, uint16_t h, uint8_t color);
-  void     fastFillRect(uint8_t x, uint16_t y, uint8_t w, uint16_t h, uint8_t c);
-  void     fastDrawRect(uint8_t x, uint16_t y, uint8_t w, uint16_t h, uint8_t c);
-  void     fastFillScreen(uint8_t color);
-  void     fastXORFlood(uint8_t mask, uint8_t length);
-  void     fastXORRect(uint8_t x, uint16_t y, uint8_t w, uint16_t h, uint8_t mask);
+  uint8_t  readHigh(int16_t x, int16_t y);
+  
+  uint16_t readPixel(int16_t x, int16_t y),
+           readID(void);
+  uint8_t  readMaskBit(int16_t x, int16_t y);
+  uint32_t readRGB(int16_t x, int16_t y);
+  uint32_t readReg(uint8_t r);
 
  private:
 
@@ -375,5 +270,9 @@ class Uno_TFTLCD : public Uno_GFX {
 #endif
 };
 
+// For compatibility with sketches written for older versions of library.
+// Color function name was changed to 'color565' for parity with 2.2" LCD
+// library.
+#define Color565 color565
 
 #endif
