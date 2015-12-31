@@ -1,0 +1,2 @@
+Attention:
+"SDCard Exten Example" only support the Arduino UNO board,not support the Mega2560,Because they use different SPI bus.
