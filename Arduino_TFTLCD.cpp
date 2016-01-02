@@ -158,12 +158,23 @@ void Arduino_TFTLCD::flood(uint16_t color, uint32_t len) {
     uint8_t lo = IDENTITY(color);
     START_PIXEL_DATA();
     #ifdef SAVE_SPACE
+        /*
         hi = BIT_TO_PORT_PERMUTATION(hi);
         lo = BIT_TO_PORT_PERMUTATION(lo);
         do {
             SEND_PERMUTED_PAIR(hi,lo);
             len--;
         } while (len>0);
+        */
+        hi = BIT_TO_PORT_PERMUTATION(hi);
+        WRITE_PERMUTED_BUS(hi);
+        while (len>=8) {
+            CLOCK_8;
+            len-=8;
+        } 
+        if (len &0b00000100) { CLOCK_4; }
+        if (len &0b00000010) { CLOCK_2; }
+        if (len &0b00000001) { CLOCK_1; }
     #else
         if(hi == lo) {
             WRITE_BUS(color);
