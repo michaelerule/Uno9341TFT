@@ -1,1 +1,0 @@
-"LCD\LCD.c" LARGE BROWSE INCDIR(.\font;.\LCD;.\sys;.\touch;.\GUI;.\USER) DEBUG OBJECTEXTEND PRINT(.\LCD.lst) TABS (2) OBJECT(.\obj\LCD.obj)
