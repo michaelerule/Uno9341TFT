@@ -1,0 +1,7 @@
+".\obj\main.obj",
+".\obj\sys.obj",
+".\obj\STARTUP.obj",
+".\obj\LCD.obj" 
+TO ".\obj\ceshi" 
+PRINT(".\ceshi.m51") RAMSIZE(256) 
+DISABLEWARNING (16) 

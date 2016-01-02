@@ -1,0 +1,1 @@
+"touch\touch.c" LARGE BROWSE INCDIR(.\font;.\LCD;.\sys;.\touch;.\GUI;.\USER) DEBUG OBJECTEXTEND PRINT(.\touch.lst) OBJECT(.\obj\touch.obj)

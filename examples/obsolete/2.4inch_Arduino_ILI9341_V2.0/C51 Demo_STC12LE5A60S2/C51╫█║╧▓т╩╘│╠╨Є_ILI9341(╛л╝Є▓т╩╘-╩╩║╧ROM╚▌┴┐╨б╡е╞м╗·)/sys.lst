@@ -1,0 +1,38 @@
+C51 COMPILER V9.53.0.0   SYS                                                               11/30/2014 00:40:23 PAGE 1   
+
+
+C51 COMPILER V9.53.0.0, COMPILATION OF MODULE SYS
+OBJECT MODULE PLACED IN .\obj\sys.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE sys\sys.c LARGE BROWSE INCDIR(.\font;.\LCD;.\sys;.\touch;.\GUI;.\USER) D
+                    -EBUG OBJECTEXTEND PRINT(.\sys.lst) TABS(2) OBJECT(.\obj\sys.obj)
+
+line level    source
+
+   1          #include "sys.h"
+   2          void delay_ms(int count)  // /* X1ms */
+   3          {
+   4   1              int i,j;
+   5   1              for(i=0;i<count;i++)
+   6   1                      for(j=0;j<1000;j++);
+   7   1      }
+   8          
+   9          void delay_us(int count)  // /* X1us */
+  10          {
+  11   1              int i,j;
+  12   1              for(i=0;i<count;i++)
+  13   1                      for(j=0;j<1;j++);
+  14   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     76    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
