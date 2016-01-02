@@ -82,10 +82,53 @@ PC0: Chip select line. 1 for enabel. Left high by driver code.
 
 // Send color data from 565 format into the permuted representation
 // for faster IO
-#define BIT_TO_PORT_PERMUTATION(b) b
-#define PORT_TO_BIT_PERMUTATION(b) b
-#define WRITE_PERMUTED_BUS(d) WRITE_BUS(d)
+#define BIT_TO_PORT_PERMUTATION(b) (\
+    ((((b)>>0)&1)<<2)|\
+    ((((b)>>1)&1)<<3)|\
+    ((((b)>>2)&1)<<1)|\
+    ((((b)>>3)&1)<<0)|\
+    ((((b)>>4)&1)<<4)|\
+    ((((b)>>5)&1)<<5)|\
+    ((((b)>>6)&1)<<7)|\
+    ((((b)>>7)&1)<<6)\
+)
+
+// Take color data form port permutation back to the color 565 bit order
+#define PORT_TO_BIT_PERMUTATION(b) (\
+    ((((b)>>2)&1)<<0)|\
+    ((((b)>>3)&1)<<1)|\
+    ((((b)>>1)&1)<<2)|\
+    ((((b)>>0)&1)<<3)|\
+    ((((b)>>4)&1)<<4)|\
+    ((((b)>>5)&1)<<5)|\
+    ((((b)>>7)&1)<<6)|\
+    ((((b)>>6)&1)<<7)\
+)
+
+#define WRITE_PERMUTED_BUS(d) {\
+    PORTE = (d) & B01000000;\
+    PORTD = (d) & B10010011;\
+    PORTB = ((d)<<2) & B00110000;\
+    PORTC = ((d)<<1) & B01000000;\
+}
+
+// This is a sanity check
 #define IDENTITY(b) BIT_TO_PORT_PERMUTATION(PORT_TO_BIT_PERMUTATION(b))
-#define PERMUTED_QUICK_READ QUICK_READ
+
+#define PERMUTED_QUICK_READ (\
+    (PIND & 0b10010011)\
+  | (PINE & 0b01000000)\
+  |((PINB & 0b00110000)>>2)\
+)
+
+// This needs to grab at least the mask aka frame_ID bit and should
+// also grab whatever bits we want to use to recognize background vs.
+// foreground colors. Frame bit is on D
+#define QUICK_READ (\
+    ((PINE&B01000000|PIND&B00000010) << 1) |       \
+    ((PIND&B10000000) >> 1) |       \
+    ((PIND&B00000001) << 3) | \
+     (PIND&B00010000)\
+)
 
 

@@ -411,7 +411,7 @@ void Arduino_TFTLCD::fastXORFlood(uint8_t mask, uint8_t length) {
     STOP_READING();
     START_PIXEL_DATA();
     for(uint16_t i=0; i<length; i++) {
-        WRITE_PERMUTED_BUS(colors[i]);
+        WRITE_BUS(colors[i]);
         CLOCK_1;
     }
 }

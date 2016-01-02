@@ -227,6 +227,7 @@ disabled prior to performing IO operations on PORTC.
 
 //////////////////////////////////////////////////////////////////////////
 // Start reading pixel data
+/*
 #define _START_READING() {\
     COMMAND(BEGIN_READ_DATA);\
     setReadDir();\
@@ -235,6 +236,17 @@ disabled prior to performing IO operations on PORTC.
     DELAY1;\
     READY_READ;\
     DELAY1;\
+}
+*/
+#define _START_READING() {\
+    READY_COMMAND;\
+    WRITE_BUS(BEGIN_READ_DATA);\
+    REQUEST_READ;\
+    setReadDir();\
+    SEND_DATA;\
+    DELAY3;\
+    READY_READ;\
+    DELAY3;\
 }
 
 // Finish reading pixel data

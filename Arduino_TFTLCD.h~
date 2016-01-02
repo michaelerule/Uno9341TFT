@@ -75,6 +75,7 @@ class Arduino_TFTLCD : public Arduino_GFX {
   
   // "accurate" Drawing routines
   void     drawPixel(int16_t x, int16_t y, uint16_t color);
+  void     colorPixel(uint16_t y, uint16_t color);
   void     drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
   void     drawFastHLine(int16_t x0, int16_t y0, int16_t w, uint16_t color);
   void     drawFastVLine(int16_t x0, int16_t y0, int16_t h, uint16_t color);
@@ -105,7 +106,7 @@ class Arduino_TFTLCD : public Arduino_GFX {
   void     fastXORRect(uint8_t x, uint16_t y, uint8_t w, uint16_t h, uint8_t mask);
 
  private:
-  void     colorPixel(uint16_t y, uint16_t permuted_color);
+
   void     init(),
            flood(uint16_t color, uint32_t len);
 

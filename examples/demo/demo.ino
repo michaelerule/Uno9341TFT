@@ -3,13 +3,13 @@
 
 // INCLUDE MODEL DATA
 //#include "sphere.h"
-#include "small_bunny.h"
 //#include "bunny.h"
-//#include "face.h"
+//#include "bunny.h"
+#include "face.h"
 
 #define AXLEN 0.4
 
-Arduino_3D tft(A3,A2,A1,A0,A4);
+Arduino_3D tft;
 
 #define POINT_CLOUD_RENDERING_MODE 0
 #define EDGE_RENDERING_MODE        1
