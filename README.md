@@ -25,6 +25,7 @@ the CC BY-SA 4.0 license is one-way compatible with the GPLv3 license.
 ### See also
 
 [Writeup](http://crawlingrobotfortress.blogspot.de/2015/12/better-3d-graphics-engine-on-arduino.html)
+
 [Hackaday post](https://hackaday.com/2016/01/02/better-3d-graphics-on-the-arduino/)
 
 ---------------------------------------------------------------------------
