@@ -21,6 +21,12 @@ All source code added to this project (i.e. not copyright of Adafruit)
 is licensed under the Gnu Public License 3.0 (GPLv3). Please note that
 the CC BY-SA 4.0 license is one-way compatible with the GPLv3 license.
 
+
+### See also
+
+[Writeup](http://crawlingrobotfortress.blogspot.de/2015/12/better-3d-graphics-engine-on-arduino.html)
+[Hackaday post](https://hackaday.com/2016/01/02/better-3d-graphics-on-the-arduino/)
+
 ---------------------------------------------------------------------------
 
 
