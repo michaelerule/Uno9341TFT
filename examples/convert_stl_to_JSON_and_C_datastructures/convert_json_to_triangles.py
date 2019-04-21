@@ -11,17 +11,16 @@ from __future__ import print_function
 '''
 Meshlab can output meshes as JSON formmatted triangle and vertex data.
 We need to wrangle this into the triangle format for the Arduino3D 
-models.
-
-JSON is similar enough to Python that we can parse it directly just by
-definind the values true, false, and null, to their Python equivalents. 
+models. JSON is similar enough to Python that we can parse it directly 
+just by definind the values true, false, and null, to their Python 
+equivalents. 
 
 Cat a JSON model over STDIN
 
 Outputs C header file for object data. 
 
 Example usage
-cat ./bunny_ultralowpoly_1.json | ./convert_json_to_triangles.py
+cat ./bunny_ultralowpoly_1.json | ./convert_json_to_triangles.py | tee bunny_ultralowpoly_1.h
 '''
 
 import sys, os
