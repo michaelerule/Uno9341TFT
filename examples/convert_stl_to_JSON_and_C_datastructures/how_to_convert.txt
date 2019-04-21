@@ -1,19 +1,19 @@
-Meshlab can output meshes as JSON formmatted triangle and vertex data.
-We need to convert this into the triangle format ussed for the Arduino3D 
+Meshlab can output meshes as JSON formatted triangle and vertex data.
+We need to convert this into the triangle format used for the Arduino3D 
 models.
 
 
 Workflow:
 
-    1. Open model in MeshLab
-    2. Repair and edit mesh as necessary
-    3. Simplify mesh, no more than 256 vertices or triangles! 
-        Realistically, only models with <100 triangles will work well on the Arduino
-        (suggest using MeshLab's quadratic edge collapse decimation routine)
-    4. Recompute vertex, face normals (if needed)
-    5. Expore as .json data
-    6. Convert to C datastructures:
-        `cat model.json | ./convert_json_to_triangles.py >> model.h`
-    7. This can compute the vertices, faces, edges, face normals, and vertex normals. 
-        Depending on the rendering mode, we may not need all of this data. 
-        Unecessary data can be deleted.
+1. Open model in MeshLab
+2. Repair and edit mesh as necessary
+3. Simplify mesh, no more than 256 vertices or triangles! 
+    Realistically, only models with <100 triangles will work well on the Arduino
+    (suggest using MeshLab's quadratic edge collapse decimation routine)
+4. Recompute vertex, face normals (if needed)
+5. Export as .json data
+6. Convert to C datastructures:
+    `cat model.json | ./convert_json_to_triangles.py >> model.h`
+7. This can compute the vertices, faces, edges, face normals, and vertex normals. 
+    Depending on the desired rendering mode, we may not need all of this data. 
+    Unnecessary data can be deleted.

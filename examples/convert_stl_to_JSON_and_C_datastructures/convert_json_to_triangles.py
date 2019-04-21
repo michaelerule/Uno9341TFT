@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 from __future__ import print_function
 
 '''
-Meshlab can output meshes as JSON formmatted triangle and vertex data.
+Meshlab can output meshes as JSON formatted triangle and vertex data.
 We need to wrangle this into the triangle format for the Arduino3D 
 models. JSON is similar enough to Python that we can parse it directly 
 just by definind the values true, false, and null, to their Python 
