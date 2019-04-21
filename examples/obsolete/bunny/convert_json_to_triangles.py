@@ -1,4 +1,13 @@
-#!/usr/bin/env ipython
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+from __future__ import absolute_import
+from __future__ import with_statement
+from __future__ import division
+from __future__ import nested_scopes
+from __future__ import generators
+from __future__ import unicode_literals
+from __future__ import print_function
+
 '''
 Meshlab can output meshes as JSON formmatted triangle and vertex data.
 We need to wrangle this into the triangle format for the Arduino3D 
@@ -36,7 +45,7 @@ def dense_matrix_print_format(x,WIDTH=100):
     lines+=s+'\n'
     return lines
 
-# Parse JSON using eval. 
+# Parse JSON using eval. Very lazy but it works!
 false = False
 true  = True
 null  = None
@@ -49,7 +58,7 @@ normals   = array(model['vertices'][1]['values'])
 triangles = array(model['connectivity'][0]['indices'])
 
 # some sanity checks
-print '// THERE MUST BE NO MORE THAN 256 VERTICES'
+print('// THERE MUST BE NO MORE THAN 256 VERTICES')
 assert len(vertices)%3   == 0
 assert len(triangles)%3  == 0
 assert len(vertices)//3  <= 256
@@ -86,7 +95,7 @@ x = recenter(x)
 y = recenter(y)
 z = recenter(z)
 scale = np.max([np.max(x),np.max(y),np.max(z)])
-print '// scale=',scale
+print('// scale=',scale)
 rescale = MAX_SCALE / scale
 x *= rescale
 y *= rescale
@@ -99,23 +108,19 @@ vertices[0::3] = x
 vertices[1::3] = y
 vertices[2::3] = z
 
-
 #quantize the vertex normals
 normals = int8(NORMAL_SCALE*normals)
 
-
-
-
-print '#define NTRIANGLES %d'%NTRIANGLES
-print '#define NVERTICES  %d'%NVERTICES
-print 'PROGMEM const int8_t vertices[NVERTICES*3]={'
-print dense_matrix_print_format(vertices)+'};'
-print 'PROGMEM const int8_t normals[NVERTICES*3]={'
-print dense_matrix_print_format(normals)+'};'
-print 'PROGMEM const uint8_t triangles[NTRIANGLES*3]={'
-print dense_matrix_print_format(triangles)+'};'
-print 'PROGMEM const int8_t facenormals[NTRIANGLES*3]={'
-print dense_matrix_print_format(facenormals)+'};'
+print('#define NTRIANGLES %d'%NTRIANGLES)
+print('#define NVERTICES  %d'%NVERTICES)
+print('PROGMEM const int8_t vertices[NVERTICES*3]={')
+print(dense_matrix_print_format(vertices)+'};')
+print('PROGMEM const int8_t normals[NVERTICES*3]={')
+print(dense_matrix_print_format(normals)+'};')
+print('PROGMEM const uint8_t triangles[NTRIANGLES*3]={')
+print(dense_matrix_print_format(triangles)+'};')
+print('PROGMEM const int8_t facenormals[NTRIANGLES*3]={')
+print(dense_matrix_print_format(facenormals)+'};')
 
 # Get a list of edges for fast transparent mesh rendering
 def add_edge(p1,p2,edge_set):
@@ -138,12 +143,12 @@ for triangle in triangle_edges:
 edges = sorted(list(edge_set))
 
 NEDGES = len(edges)
-print '#define NEDGES  %d'%NEDGES
-print 'PROGMEM const uint8_t edges[NEDGES*2]={'
-print dense_matrix_print_format(ravel(uint8(edges)))+'};'
+print('#define NEDGES  %d'%NEDGES)
+print('PROGMEM const uint8_t edges[NEDGES*2]={')
+print(dense_matrix_print_format(ravel(uint8(edges)))+'};')
 
 
-print '''
+print('''
 Model model_data;
 void init_model() {
     model_data.NVertices     = NVERTICES;
@@ -155,7 +160,7 @@ void init_model() {
     model_data.vertexNormals = normals;
     model_data.faceNormals   = facenormals;
 }
-'''
+''')
 
 # code below previous used to generating mapping from edges to triangles.
 # however, this takes up too much space in practice and is no longer used.
