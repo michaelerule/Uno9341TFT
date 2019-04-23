@@ -2,9 +2,6 @@
 
 This is a derivative of the Adafruit graphics libraries. I have copied the original README files below. To achieve the requisite performance optimizations, this library is no longer compatible with multiple LCD displays. This project is intended only for use of the 9341 TFT LCD display with the Arduino Uno.
 
-<iframe allowfullscreen="" frameborder="0" height="283" mozallowfullscreen="" src="https://player.vimeo.com/video/150386845" webkitallowfullscreen="" width="500"></iframe> <br />
-<a href="https://vimeo.com/150386845">3D graphics engine on the Arduino: avoiding flickering and tearing</a>.<br />
-
 This project adds the following:
 
 1. C++ libraries for rendering 3D graphics
@@ -22,6 +19,8 @@ the CC BY-SA 4.0 license is one-way compatible with the GPLv3 license.
 
 
 ### See also
+
+[A short video introduction](https://vimeo.com/150386845)
 
 Full details can be found in [this writeup](http://crawlingrobotfortress.blogspot.de/2015/12/better-3d-graphics-engine-on-arduino.html)
 
