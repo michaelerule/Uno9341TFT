@@ -4,10 +4,10 @@
 // INCLUDE MODEL DATA
 //#include "sphere.h"
 //#include "bunny.h"
-//#include "bunny.h"
-#include "face.h"
+#include "small_bunny.h"
+//#include "face.h"
 
-#define AXLEN 0.4
+#define AXLEN 0.5
 
 Arduino_3D tft;
 
@@ -17,7 +17,10 @@ Arduino_3D tft;
 #define SILHOUETTE_RENDERING_MODE  3
 #define FACET_RENDERING_MODE       4
 #define SHADED_RENDERING_MODE      5
-uint8_t rendering_mode = 4;
+uint8_t rendering_mode = 5;
+
+// Just rotate all the time; nicer demo if touchscreen input is not working
+#define AUTOROTATE 1
 
 int16_t   touch_x,touch_y,touch_z;
 uint8_t   color_choosing_mode = 0;
@@ -97,10 +100,10 @@ void model() {
     }
     
     float dx=0,dy=0;
-    if (rotation_benchmark_counter>1) {
+    if (AUTOROTATE||rotation_benchmark_counter>1) {
         // perform rotation benchmark
         dy = 0.393;
-        dx = 0;
+        dx = 0.011*AUTOROTATE;
         rotation_benchmark_counter--;
     } else if (rotation_benchmark_counter==1) {
         // Finish the benchmark: estimate frame rate and print it

@@ -26,6 +26,13 @@ Full details can be found in [this writeup](http://crawlingrobotfortress.blogspo
 
 [Hackaday post](https://hackaday.com/2016/01/02/better-3d-graphics-on-the-arduino/)
 
+### Installing for Arduino
+
+ - Clone this repository
+ - [Follow these instructions](https://www.arduino.cc/en/guide/libraries) to add the library to Arduino IDE
+ - Load sketches in Examples folder onto Arduino UNO (Leonardo support is limited and buggy). It may work on other AtMega based Arduinos, but this has not been tested. 
+ - The 9341 TFT LCD display might interfere with program uploading for some sketches; Try uploading programs without it attached. 
+
 ---------------------------------------------------------------------------
 
 
