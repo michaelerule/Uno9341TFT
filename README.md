@@ -33,6 +33,26 @@ Full details can be found in [this writeup](http://crawlingrobotfortress.blogspo
  - Load sketches in Examples folder onto Arduino UNO (Leonardo support is limited and buggy). It may work on other AtMega based Arduinos, but this has not been tested. 
  - The 9341 TFT LCD display might interfere with program uploading for some sketches; Try uploading programs without it attached. 
 
+### Benchmarks 
+
+(Rendering time in μs)
+  
+Benchmark        |9341-Uno  | Adafruit | Speedup 
+-----------------|----------|----------|--------
+Fill             | 117784   | 1321696  |  11.22  
+Text             | 54516    | 117828   |   2.16  
+Lines            | 149116   | 605668   |   4.06  
+Horiz/Vert Lines | 12084    | 125672   |  10.40  
+Draw Rectangles  | 9168     | 83380    |   9.09  
+Fill Rectangles  | 244692   | 3064596  |  12.52  
+Draw Circles     | 134216   | 637896   |   4.75  
+Fill Circles     | 83028    | 307316   |   3.70  
+Draw Triangles   | 45608    | 192564   |   4.22  
+Fill Triangles   | 433896   | 1360872  |   3.14  
+Draw Rounded     | 36440    | 145428   |   3.99  
+Fill Rounded     | 519204   | 3405668  |   6.56  
+
+
 ---------------------------------------------------------------------------
 
 
