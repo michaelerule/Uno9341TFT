@@ -35,7 +35,7 @@ Full details can be found in [this writeup](http://crawlingrobotfortress.blogspo
 
 ### Benchmarks 
 
-(Rendering time in μs)
+Performance improvements (See `./exammples/self_contained_Uno9341TFT_graphics_test`; Rendering time is in μs):
   
 Benchmark        |9341-Uno  | Adafruit | Speedup 
 -----------------|----------|----------|--------
@@ -52,6 +52,22 @@ Fill Triangles   | 433896   | 1360872  |   3.14
 Draw Rounded     | 36440    | 145428   |   3.99  
 Fill Rounded     | 519204   | 3405668  |   6.56  
 
+Using a fast, optimized subset of drawing commands (See `./exammples/self_contained_Uno9341TFT_graphics_test_fast_commands`):
+
+Benchmark        | Fast Draw | Adafruit | Speedup 
+-----------------|-----------|----------|--------
+Fill             |97404 |1321696|13.57
+Text             |53168 |117828 |2.22
+Lines            |56252 |605668 |10.77
+Horiz/Vert Lines |9120  |125672 |13.78
+Draw Rectangles  |6792  |83380  |12.28
+Fill Rectangles  |206644|3064596|14.83
+Fill Circles     |115120|637896 |5.54
+Draw Circles     |92904 |307316 |3.31
+Draw Triangles   |15540 |192564 |12.39
+Fill Triangles   |331112|1360872|4.11
+Draw Rounded     |38116 |145428 |3.82
+Fill Rounded     |504784|3405668|6.75
 
 ---------------------------------------------------------------------------
 
