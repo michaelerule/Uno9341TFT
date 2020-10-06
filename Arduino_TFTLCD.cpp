@@ -23,42 +23,18 @@
 // The leonardo doesn't have very much space on it.
 // We have to convert some of the macros to function calls, sadly.
 #ifdef SAVE_SPACE
-    void COMMAND(uint8_t CMD) {
-        _COMMAND(CMD);
-    }
-    void START_PIXEL_DATA() {
-        _START_PIXEL_DATA();
-    }
-    void SEND_PAIR(uint8_t hi,uint8_t lo) {
-        _SEND_PAIR(hi,lo);
-    }
-    void SEND_PERMUTED_PAIR(uint8_t hi,uint8_t lo) {
-        _SEND_PERMUTED_PAIR(hi,lo);
-    }
-    void START_READING() {
-        _START_READING();
-    }
-    void STOP_READING() {
-        _STOP_READING();
-    }
-    void SET_XY_RANGE(uint8_t x0,uint8_t x1,uint16_t y0) {
-        _SET_XY_RANGE(x0,x1,y0);
-    }
-    void SET_XY_LOCATION(uint8_t x,uint16_t y) {
-        _SET_XY_LOCATION(x,y);
-    }
-    void SET_X_LOCATION(uint8_t x) {
-        _SET_X_LOCATION(x);
-    }
-    void SET_Y_LOCATION(uint16_t y) {
-        _SET_Y_LOCATION(y);
-    }
-    void RESET_X_RANGE() {
-        _RESET_X_RANGE();
-    }
-    void ZERO_XY() {
-        _ZERO_XY();
-    }
+void COMMAND(uint8_t CMD) {_COMMAND(CMD);}
+void START_PIXEL_DATA() {_START_PIXEL_DATA();}
+void SEND_PAIR(uint8_t hi,uint8_t lo) {_SEND_PAIR(hi,lo);}
+void SEND_PERMUTED_PAIR(uint8_t hi,uint8_t lo) {_SEND_PERMUTED_PAIR(hi,lo);}
+void START_READING() {_START_READING();}
+void STOP_READING() {_STOP_READING();}
+void SET_XY_RANGE(uint8_t x0,uint8_t x1,uint16_t y0) {_SET_XY_RANGE(x0,x1,y0);}
+void SET_XY_LOCATION(uint8_t x,uint16_t y) {_SET_XY_LOCATION(x,y);}
+void SET_X_LOCATION(uint8_t x) {_SET_X_LOCATION(x);}
+void SET_Y_LOCATION(uint16_t y) {_SET_Y_LOCATION(y);}
+void RESET_X_RANGE() {_RESET_X_RANGE();}
+void ZERO_XY() {_ZERO_XY();}
 #endif
 
 ////////////////////////////////////////////////////////////////////////////
@@ -95,8 +71,7 @@ void Arduino_TFTLCD::init(void) {
 }
   
 /**  
- * Need a creative solution to compress the size here. 
- * Store initialization sequence as a table? 
+ * Initialization commands stored as a table in PROGMEM (this saves space)
  */
 #define DELAY_CODE 0
 #define NCOMMANDS 11*3+2*6
@@ -120,14 +95,14 @@ PROGMEM const uint8_t initialization_commands[NCOMMANDS] = {
     DELAY_CODE           , 255};
 
 /**
- * 
+ * Retrieve command from the `initialization_commands` list
  */
-uint8_t get_init_command(uint8_t i) {
+inline uint8_t get_init_command(uint8_t i) {
     return (uint8_t)pgm_read_byte(&initialization_commands[i]);
 }
 
 /**
- * 
+ * Send a byte of data over the 8-bit serial bus to the TFT display driver
  */
 void send_byte(uint8_t byte) {
     WRITE_BUS(byte);
@@ -135,7 +110,7 @@ void send_byte(uint8_t byte) {
 }
 
 /**
- * 
+ * Initialize a new TFT display connection
  */
 void Arduino_TFTLCD::begin() {
     ALL_IDLE;
@@ -147,9 +122,8 @@ void Arduino_TFTLCD::begin() {
     for (uint16_t i=0; i<NCOMMANDS;) {
         code = get_init_command(i++);
         hi   = get_init_command(i++);
-        if (code==DELAY_CODE) {
-            delay(hi);
-        } else {
+        if (code==DELAY_CODE) delay(hi);
+        else {
             COMMAND(code);
             send_byte(hi);
             if (lo = get_init_command(i++)) {
@@ -252,8 +226,22 @@ void Arduino_TFTLCD::flood(uint16_t color, uint32_t len) {
     #endif
 }
 
+/**
+ * Fill rectangular region of screen.
+ * 
+ * No masking or overdraw checking is performed. FRAME_ID_BIT is not set.
+ * 
+ * Calls the `flood` subroutine, which will automatically optimize color filling
+ * if the low and high bytes of the color data are identical.
+ *
+ * @param x horizontal coordinate of start of rectangular regi on
+ * @param y vertical coordinate of start of rectangular region
+ * @param w width of rectangular region (assumes dimension <=240)
+ * @param h height of rectangular region
+ * @param color 16-bit 565 RGB color code
+ */
 void Arduino_TFTLCD::fillRect(int16_t x1, int16_t y1, int16_t w, int16_t h, 
-  uint16_t fillcolor) {
+  uint16_t color) {
     int16_t  x2=x1+w-1, y2=y1+h-1;
     #ifdef DO_CLIP
         // Clipping draw commands to ensure they lie within the display area
@@ -267,12 +255,19 @@ void Arduino_TFTLCD::fillRect(int16_t x1, int16_t y1, int16_t w, int16_t h,
         if(y2>=_height){y2=_height-1;h=y2-y1+1;}
     #endif
     SET_XY_RANGE(x1,x2,y1);
-    flood(fillcolor, (uint32_t)w * (uint32_t)h);
+    flood(color, (uint32_t)w * (uint32_t)h);
     RESET_X_RANGE();
 }
 
 /**
+ * Fill entire screen with a color.
+ * 
+ * No masking or overdraw checking is performed. FRAME_ID_BIT is not set.
+ * 
+ * Calls the `flood` subroutine, which will automatically optimize color filling
+ * if the low and high bytes of the color data are identical.
  *
+ * @param color 16-bit 565 RGB color code
  */
 void Arduino_TFTLCD::fillScreen(uint16_t color) {
     ZERO_XY();
@@ -282,8 +277,9 @@ void Arduino_TFTLCD::fillScreen(uint16_t color) {
 /**
  * Writes a single pixel to the diplay.
  *
- * Optionally testing for masking (used to handle 3D occlusion problem and to
- * erase "stale" pixels from the previous frame)
+ * Supports masked erasing. If `do_masking` is True and all foreground pixels
+ * from the current and pervious frame were drawn with their corresponding
+ * FRAME_ID_BITs set, then it will not erase pixels drawn in the current frame.
  *
  * @param y (uint16_t): the vertical position of the pixel
  * @param permuted_color (uint16_t): 16-bit color, with bits *already permuted*
@@ -336,9 +332,7 @@ void Arduino_TFTLCD::colorPixel(uint16_t y, uint16_t permuted_color) {
 /**
  * Write a single 16-bit pixel to the display. 
  *
- * This does not check FRAME_ID_BIT for masking or erasing, and writes the 
- * full un-altered 16-bit value to the display. 
- * display. 
+ * No masking or overdraw checking is performed. FRAME_ID_BIT is not set.
  *
  * @param x Horizontal location of the pixel
  * @param y Vertical location of the pixel
@@ -362,10 +356,7 @@ void Arduino_TFTLCD::drawPixel(int16_t x, int16_t y, uint16_t color) {
 /**
  * Fill a vertical line on the display. 
  *
- * TODO: it looks like this does not premute the bits of the color to match
- *   the pin configuration on the TFT shield, before sending colors to `flood`.
- *   This may be a bug? (or it is assumed that the user will permute the bits
- *   before calling this routine?)
+ * No masking or overdraw checking is performed. FRAME_ID_BIT is not set.
  *
  * @param x Horizontal location of the pixel
  * @param y Vertical location of the pixel
@@ -427,7 +418,7 @@ void Arduino_TFTLCD::drawFastHLine(int16_t x, int16_t y, int16_t length, uint16_
         if (!do_masking) {
             // If masking is OFF, then we set the FRAME_ID_BIT in the color data
             color &= FRAME_ID_MASK16;
-            color |= (uint16_t)(mask_flag^line_flag)<< 8;
+            color |= (uint16_t)(mask_flag^line_flag)<<8;
         }
     #endif
     // Retain only the high byte of the color data. We will use the `fastFlood`
@@ -465,9 +456,8 @@ void Arduino_TFTLCD::drawFastHLine(int16_t x, int16_t y, int16_t length, uint16_
                     SEND_DATA; 
                     if (is_masked) {
                         if (in_segment) {
-                            // If current pixel is masked, but previous pixels were
-                            // not, then we should stop to fill in those previous
-                            // piexls. 
+                            // If current pixel is masked, but previous pixels
+                            // weren't, stop to fill in those previous pixels. 
                             STOP_READING();
                             SET_X_LOCATION(start);
                             fastFlood(color,i-start);
@@ -478,7 +468,7 @@ void Arduino_TFTLCD::drawFastHLine(int16_t x, int16_t y, int16_t length, uint16_
                         }
                     }
                     else if (!in_segment) {
-                        // If previous pixels were masked, but this one is not, 
+                        // If previous pixels were masked, but this one isn't, 
                         // start keeping track of the current segment. We will fill
                         // it in later, when we encounter a new masked region or
                         // reach the end of the horizontal line.
@@ -658,7 +648,6 @@ void Arduino_TFTLCD::fastFillScreen(uint8_t color) {
  * @param color A *fast* color (low and high bytes are the same).
  */
 void Arduino_TFTLCD::fastPixel(uint8_t x, uint16_t y, uint8_t color) {
-    // TODO: should we set FRAME_ID_BIT here as in fastestHLine?
 #ifdef SAVE_SPACE
     drawPixel(x,y,color*0x0101);
 #else
@@ -784,18 +773,18 @@ void Arduino_TFTLCD::fastestVLine(uint8_t x, uint16_t y, uint16_t h, uint8_t col
  */
 void Arduino_TFTLCD::fastestHLine(uint8_t x, uint16_t y, uint16_t w, uint8_t color) {
     #ifndef DISABLE_MASKING_AND_OVERDRAW
-    if (!do_masking) {
-        // (`do_masking` is true if we are currently doing masked erasing.)
-        // Masked erasing fills in pixels with a background color, skipping
-        // pixels for which the FRAME_ID_BIT matches the current frame.
-        // Outside of masked erase mode, we should set the FRAME_ID_BIT 
-        // correctly to mark pixels from the current frame.
-        // TODO: why doesn't the FRAME_ID_BIT setting code appear in the other
-        // fast drawing routines?
-        uint8_t line_flag = FRAME_ID_FLAG8*(y&1);
-        color &= FRAME_ID_MASK8;
-        color |= mask_flag^line_flag;
-    }
+        if (!do_masking) {
+            // (`do_masking` is true if we are currently doing masked erasing.)
+            // Masked erasing fills in pixels with a background color, skipping
+            // pixels for which the FRAME_ID_BIT matches the current frame.
+            // Outside of masked erase mode, we should set the FRAME_ID_BIT 
+            // correctly to mark pixels from the current frame.
+            // TODO: why doesn't the FRAME_ID_BIT setting code appear in the other
+            // fast drawing routines?
+            uint8_t line_flag = FRAME_ID_FLAG8*(y&1);
+            color &= FRAME_ID_MASK8;
+            color |= mask_flag^line_flag;
+        }
     #endif
     SET_XY_LOCATION(x,y);
     fastFlood(color,w);
@@ -900,7 +889,8 @@ void Arduino_TFTLCD::fastFillTriangle(
 /**
  * Fastest way to draw a line. Uses Bresenham's line algorithm.
  *
- * No masking or overdraw (occlusion) checking is performed.
+ * This routine correctly sets the FRAME_ID_BIT per scanline, but does not 
+ * support masked erasing or overdraw checking.
  * 
  * This routine assumes that it is reading and writing *fast* colors, for which
  * the low and high bytes are the same. It will produce undefined results if
@@ -919,40 +909,65 @@ void Arduino_TFTLCD::fastLine(
     uint16_t dx = x1>x0?x1-x0:x0-x1;
     uint16_t dy = y1>y0?y1-y0:y0-y1;
     
-    color &= FRAME_ID_MASK8;
+    #ifndef DISABLE_MASKING_AND_OVERDRAW
+        // Clear the FRAME_ID_BIT in the color data
+        color &= FRAME_ID_MASK8;
+    #endif
     
     if (dy>dx) {
-        if (y0 > y1) { 
-            swapU16(y0, y1); 
-            swapU8(x0, x1); 
-        }
-        int16_t err = dy/2;
+        // Line is steep: vertical span exceeds horizontal span
+        // May also be a purely vertical line
+        // Ensure that first point of line has smaller y coordinate
+        if (y0>y1) {swapU16(y0,y1); swapU8(x0,x1);}
+        int16_t err   = dy/2;
         int16_t xstep = x0<x1?1:-1;
+        // Draw line as sequence of vertical lines. 
+        #ifndef DISABLE_MASKING_AND_OVERDRAW
+            // Need to toggle the FRAME_ID_BIT on alternate scanlines. 
+            // This means that the color data changes on alternate lines.
+            // Set FRAME_ID_BIT to appropriate value for y0
+            color |= mask_flag^(FRAME_ID_FLAG8*(y0&1));
+        #endif
         SET_XY_RANGE(x0,x0,y0);
         START_PIXEL_DATA();
         while (y0<=y1) {
-            WRITE_BUS(color|mask_flag^(FRAME_ID_FLAG8*(y0&1)));
-            CLOCK_1; 
+            // Write the current color to the display
+            WRITE_BUS(color);
+            CLOCK_1;
+            #ifndef DISABLE_MASKING_AND_OVERDRAW
+                // Toggle FRAME_ID_BIT when advancing vertical position
+                color ^= FRAME_ID_FLAG8;
+            #endif
             y0++;
-            err -= dx;
-            if (err < 0) {
+            err-=dx;
+            if (err<0) {
+              // Advance/decrease horizontal position along the line.
               x0 += xstep;
               SET_XY_RANGE(x0,x0,y0);
               START_PIXEL_DATA();
-              err += dy;
+              // TODO: is it a problem that we might have flipped the draw order
+              // *after* initializing dx and dy? Is this a bug?
+              err+= dy;
             }
         }
         RESET_X_RANGE();
     } else {
-        if (x0 > x1) { 
-            swapU16(y0, y1); 
-            swapU8(x0, x1); 
-        }
+        // Line is not steep: horizontal span exceeds vertical span
+        // May also be a purely horizontal line
+        // Ensure that first point of line has smaller x coordinate
+        if (x0>x1) {swapU16(y0,y1); swapU8(x0,x1);}
         int16_t err = dx/2;
         int16_t ystep = y0<y1?1:-1;
+        // Draw line as sequence of horizontal lines
+        #ifndef DISABLE_MASKING_AND_OVERDRAW
+            // Need to toggle the FRAME_ID_BIT on alternate scanlines. 
+            // This means that the color data changes on alternate lines.
+            // Set FRAME_ID_BIT to appropriate value for y0
+            color |= mask_flag^(FRAME_ID_FLAG8*(y0&1));
+        #endif
         SET_XY_LOCATION(x0,y0);
         START_PIXEL_DATA();
-        WRITE_BUS(color|mask_flag^(FRAME_ID_FLAG8*(y0&1)));
+        WRITE_BUS(color);
         while (x0<=x1) {
             CLOCK_1;
             err -= dy;
@@ -961,11 +976,16 @@ void Arduino_TFTLCD::fastLine(
                 y0 += ystep;
                 SET_XY_LOCATION(x0,y0);
                 START_PIXEL_DATA();
-                WRITE_BUS(color|mask_flag^(FRAME_ID_FLAG8*(y0&1)));
+                #ifndef DISABLE_MASKING_AND_OVERDRAW
+                    // Toggle FRAME_ID_BIT when advancing vertical position
+                    color ^= FRAME_ID_FLAG8;
+                #endif
+                WRITE_BUS(color);
                 err += dx;
             }
         }
     }
 }  
+
 
 
