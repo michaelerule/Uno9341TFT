@@ -35,39 +35,25 @@ Full details can be found in [this writeup](http://crawlingrobotfortress.blogspo
 
 ### Benchmarks 
 
-Performance improvements (See `./exammples/self_contained_Uno9341TFT_graphics_test`; Rendering time is in μs):
+Performance improvements (Rendering time is in μs):
   
-Benchmark        |9341-Uno  | Adafruit | Speedup 
------------------|----------|----------|--------
-Fill             | 117784   | 1321696  |  11.22  
-Text             | 54516    | 117828   |   2.16  
-Lines            | 149116   | 605668   |   4.06  
-Horiz/Vert Lines | 12084    | 125672   |  10.40  
-Draw Rectangles  | 9168     | 83380    |   9.09  
-Fill Rectangles  | 244692   | 3064596  |  12.52  
-Draw Circles     | 134216   | 637896   |   4.75  
-Fill Circles     | 83028    | 307316   |   3.70  
-Draw Triangles   | 45608    | 192564   |   4.22  
-Fill Triangles   | 433896   | 1360872  |   3.14  
-Draw Rounded     | 36440    | 145428   |   3.99  
-Fill Rounded     | 519204   | 3405668  |   6.56  
+Benchmark|Adafruit|9341-Uno Basic Draw|Speedup|9341-Uno Fast Draw|Speedup
+-----------------|----------|-----------------|-----------------|-----------------|-----------------
+Fill|1321696|117784|11.22|97404|13.57
+Text|117828|54516|2.16|53168|2.22
+Lines|605668|149116|4.06|56252|10.77
+Horiz/Vert Lines|125672|12084|10.40|9120|13.78
+Draw Rectangles|83380|9168|9.09|6792|12.28
+Fill Rectangles|3064596|244692|12.52|206644|14.83
+Fill Circles|637896|134216|4.75|115120|5.54
+Draw Circles|307316|83028|3.70|92904|3.31
+Draw Triangles|192564|45608|4.22|15540|12.39
+Fill Triangles|1360872|433896|3.14|331112|4.11
+Draw Rounded|145428|36440|3.99|38116|3.82
+Fill Rounded|3405668|519204|6.56|504784|6.75
 
-Using a fast, optimized subset of drawing commands (See `./exammples/self_contained_Uno9341TFT_graphics_test_fast_commands`):
-
-Benchmark        | Fast Draw | Adafruit | Speedup 
------------------|-----------|----------|--------
-Fill             |97404 |1321696|13.57
-Text             |53168 |117828 |2.22
-Lines            |56252 |605668 |10.77
-Horiz/Vert Lines |9120  |125672 |13.78
-Draw Rectangles  |6792  |83380  |12.28
-Fill Rectangles  |206644|3064596|14.83
-Fill Circles     |115120|637896 |5.54
-Draw Circles     |92904 |307316 |3.31
-Draw Triangles   |15540 |192564 |12.39
-Fill Triangles   |331112|1360872|4.11
-Draw Rounded     |38116 |145428 |3.82
-Fill Rounded     |504784|3405668|6.75
+Basic Drawing benchmarks: `./exammples/self_contained_Uno9341TFT_graphics_test`
+Fast Drawing benchmarks: `./exammples/self_contained_Uno9341TFT_graphics_test_fast_commands`
 
 ---------------------------------------------------------------------------
 
