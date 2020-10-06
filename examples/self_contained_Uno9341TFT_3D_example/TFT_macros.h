@@ -118,13 +118,18 @@
     SEND_PERMUTED_PAIR(color>>8,color);\
 }
 
+// Fast colors have matching high and low byte, and can be sent by writing to
+// the output lines once, then sending two clock pulses. 
 #define SEND_FAST(c) {\
     WRITE_BUS(c);\
     CLOCK_DATA;\
     CLOCK_DATA;\
 }
 
-// for loop unrolling
+// For loop unrolling in the fast color flood routine. 
+// The number referes to the number of pixels to send.
+// Since the high and low bytes of "fast" colors are the same, we send two
+// clock pulses per pixel.
 #define CLOCK_1   {CLOCK_DATA; CLOCK_DATA;};
 #define CLOCK_2   {CLOCK_1   CLOCK_1};
 #define CLOCK_4   {CLOCK_2   CLOCK_2};
@@ -243,7 +248,9 @@ disabled prior to performing IO operations on PORTC.
 }
 
 // Leonardo can't use macros because there isn't enough space
-// Other Arduino version can though
+// Other Arduino versions can though.
+// If there is enough space, use the address window routines as macros (faster)
+// (for Leonardo, we will attach these to functions. Slower but less space)
 #ifndef SAVE_SPACE
     #define ZERO_XY() _ZERO_XY()
     #define RESET_X_RANGE() _RESET_X_RANGE()

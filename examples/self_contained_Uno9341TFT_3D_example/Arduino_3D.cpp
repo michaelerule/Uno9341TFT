@@ -38,15 +38,24 @@
 // Constructors and routines for controlling state
 ////////////////////////////////////////////////////////////////////////
 
+/**
+ *
+ */
 Arduino_3D::Arduino_3D():Arduino_TFTLCD() {
     setColorMap(11);
 }
 
+/**
+ *
+ */
 void Arduino_3D::setLocation(uint16_t x0, uint16_t y0) {
     X0 = x0;
     Y0 = y0;
 }
 
+/**
+ *
+ */
 void Arduino_3D::setColorMap(uint8_t cmap) {
     PU8 map;
     switch (cmap) {
@@ -68,6 +77,9 @@ void Arduino_3D::setColorMap(uint8_t cmap) {
     for (uint8_t i=0; i<NCOLORS; i++) color_map[i] = readUnsignedByte(map[i]);
 }
 
+/**
+ *
+ */
 void Arduino_3D::eraseRegion(uint8_t x0, uint16_t y0, uint8_t x1, uint16_t y1) {
     if (x1<x0 || y1<y0) return;    
 	masking_on();
@@ -76,9 +88,17 @@ void Arduino_3D::eraseRegion(uint8_t x0, uint16_t y0, uint8_t x1, uint16_t y1) {
 	    drawFastHLine(x0,i,w,background_color);
     	masking_off();
 }
+
+/**
+ *
+ */
 void Arduino_3D::eraseBoundingBox(Model *M, int8_t *vertices) {
     eraseBoundingBox(vertices,M->NVertices);
 }
+
+/**
+ *
+ */
 void Arduino_3D::eraseBoundingBox(int8_t *vertices,uint16_t nv) {
     int8_t maxx = -128;
     int8_t maxy = -128;
@@ -101,25 +121,42 @@ void Arduino_3D::eraseBoundingBox(int8_t *vertices,uint16_t nv) {
 // using face or vertex normals. 
 ////////////////////////////////////////////////////////////////////////
 
+/**
+ *
+ */
 void Arduino_3D::drawVertices(Model *M, int8_t *vertices, uint16_t color) {
     uint16_t nv = (M->NVertices);
     if (!do_masking) color = foreground_color;
     for (int i=0; i<nv; i++) 
         drawPixel(vertices[i*3]+X0,vertices[i*3+1]+Y0,color);
 }
+
+/**
+ *
+ */
 void Arduino_3D::drawVertices(Model *M, int8_t *vertices) {
 	drawVertices(M,vertices,foreground_color);
 }
+
+/**
+ *
+ */
 void Arduino_3D::eraseVertices(Model *M, int8_t *vertices) {
 	masking_on();
 	drawVertices(M,vertices,background_color);
     	masking_off();
 }
 
+/**
+ *
+ */
 void Arduino_3D::drawEdges(Model *M, int8_t *vertices) {
     drawEdges(M,vertices,foreground_color);
 }
 
+/**
+ *
+ */
 void Arduino_3D::drawEdges(Model *M, int8_t *vertices, uint16_t color) {
     if (M->edges==NULL) {
         drawMesh(M,vertices,color);
@@ -142,6 +179,10 @@ void Arduino_3D::drawEdges(Model *M, int8_t *vertices, uint16_t color) {
         #endif
     }
 }
+
+/**
+ *
+ */
 void Arduino_3D::eraseEdges(Model *M, int8_t *vertices) {
     masking_on();
     drawEdges(M, vertices, background_color);
@@ -156,6 +197,9 @@ void Arduino_3D::eraseEdges(Model *M, int8_t *vertices) {
 // like a bitmask, and only points numbers that mask to 0 are drawn
 ////////////////////////////////////////////////////////////////////////
 
+/**
+ *
+ */
 void get_triangle_points(Model *M, int8_t *vertices, uint8_t i, int8_t **p, int8_t **q, int8_t **r) {
     // Get the vertex indecies for the triangle
     PU8 t = &M->faces[i*3];
@@ -168,12 +212,23 @@ void get_triangle_points(Model *M, int8_t *vertices, uint8_t i, int8_t **p, int8
     *r = &vertices[ri*3];
 }
 
+/**
+ *
+ */
 uint8_t facing_camera(int8_t *p, int8_t *q, int8_t *r) {
     return (int)(r[0]-p[0])*(q[1]-p[1])<(int)(q[0]-p[0])*(r[1]-p[1]);
 }
+
+/**
+ *
+ */
 void Arduino_3D::drawMesh(Model *M, int8_t *vertices) {
     drawMesh(M,vertices,foreground_color);
 }
+
+/**
+ *
+ */
 void Arduino_3D::drawMesh(Model *M, int8_t *vertices, uint16_t color) {
     uint16_t nt    = M->NFaces;
     for (int i=0; i<nt; i++) {
@@ -200,6 +255,10 @@ void Arduino_3D::drawMesh(Model *M, int8_t *vertices, uint16_t color) {
         }
     }
 }
+
+/**
+ *
+ */
 void Arduino_3D::eraseMesh(Model *M, int8_t *vertices) {
     // Erase triangle using the masking feature
     masking_on();
@@ -216,6 +275,9 @@ void Arduino_3D::eraseMesh(Model *M, int8_t *vertices) {
 // from front to back and overdraw avoidance is used. 
 ////////////////////////////////////////////////////////////////////////
 
+/**
+ *
+ */
 void Arduino_3D::fillFaces(Model *M, int8_t *vertices, uint8_t *face_colors, uint8_t *draw_order) {
     updateDrawingOrder(M,vertices,draw_order);
     uint16_t color = foreground_color;
@@ -240,6 +302,10 @@ void Arduino_3D::fillFaces(Model *M, int8_t *vertices, uint8_t *face_colors, uin
         }
     }
 }
+
+/**
+ *
+ */
 void Arduino_3D::shadeFaces(Model *M, int8_t *vertices, uint8_t *vertex_colors, uint8_t *draw_order) {
     updateDrawingOrder(M,vertices,draw_order);
     uint16_t nt    = M->NFaces;
@@ -270,10 +336,18 @@ void Arduino_3D::shadeFaces(Model *M, int8_t *vertices, uint8_t *vertex_colors, 
 ////////////////////////////////////////////////////////////////////////
 // Routines for creating, rotating, and applying axis transformations 
 ////////////////////////////////////////////////////////////////////////
+
+/**
+ *
+ */
 void Arduino_3D::getScaleTransform(float AXLEN, float *abuff1) {
   for (uint8_t i=0; i<9; i++) abuff1[i]=0;
   abuff1[0] = abuff1[4] = abuff1[8] = AXLEN;
 }
+
+/**
+ *
+ */
 void Arduino_3D::rotateTransformXY(float *input_transform, float dx, float dy, float *output_transform) {
     float cdx = cos(dx);
     float sdx = sin(dx);
@@ -292,6 +366,9 @@ void Arduino_3D::rotateTransformXY(float *input_transform, float dx, float dy, f
     }
 }
 
+/**
+ *
+ */
 void transformPoint(float *transform,P8 p,int8_t *q) {
     int8_t nx = readSignedByte(p[0]);
     int8_t ny = readSignedByte(p[1]);
@@ -300,21 +377,34 @@ void transformPoint(float *transform,P8 p,int8_t *q) {
         q[i] = nx*transform[i]+ny*transform[i+3]+nz*transform[i+6];
 }
 
+/**
+ *
+ */
 int8_t getZNormal(float *transform, P8 normal) {
     int8_t p[3];
     transformPoint(transform,normal,&p[0]);
     return p[2];
 }
 
+/**
+ *
+ */
 void Arduino_3D::applyTransform(Model *M, float *transform, int8_t *vertices) {
     uint16_t nv = M->NVertices;
     for (int i=0; i<nv; i++) 
         transformPoint(transform,&M->vertices[i*3],&vertices[i*3]);
 }
 
+/**
+ *
+ */
 inline float inverseMagnitude(float x, float y, float z) {
     return 1.0/sqrt(x*x+y*y+z*z);
 }
+
+/**
+ *
+ */
 void normalizeTransform(float *transform, float *output) {
     for (uint8_t j=0; j<3; j++) {
         float scale = (NCOLORS/127.0)*inverseMagnitude(transform[j],transform[j+3],transform[j+6]);
@@ -326,6 +416,10 @@ void normalizeTransform(float *transform, float *output) {
 // Routines for generating vertex and face colors 
 // from lights or from depth-shading
 ////////////////////////////////////////////////////////////////////////
+
+/**
+ *
+ */
 void project_normals(float *transform, P8 normals,uint16_t n,uint8_t *output) {
     float normalized[9];
     normalizeTransform(transform,normalized);
@@ -334,13 +428,20 @@ void project_normals(float *transform, P8 normals,uint16_t n,uint8_t *output) {
         output[i] = z<0?0:z;
     }
 }
+
+/**
+ *
+ */
 void Arduino_3D::computeVertexLightingColors(Model *M, float *transform, uint8_t *vertex_colors) {
     project_normals(transform,M->vertexNormals,M->NVertices,vertex_colors);
 }
+
+/**
+ *
+ */
 void Arduino_3D::computeFaceLightingColors(Model *M, float *transform, uint8_t *face_colors) {
     project_normals(transform,M->faceNormals,M->NFaces,face_colors);
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 // Non-convex 3D surfaces can overlap themselvs. Sorting triangles from
@@ -356,6 +457,9 @@ void Arduino_3D::computeFaceLightingColors(Model *M, float *transform, uint8_t *
 // To take advantage of this, we store and use a fixed permutation 
 // array "draw_order"
 
+/**
+ *
+ */
 void Arduino_3D::computeTriangleDepths(Model *M, int8_t *vertices, uint8_t *draw_order, uint8_t *depths) {
     uint16_t nt = M->NFaces;
     for (int j=0; j<nt; j++) {
@@ -367,10 +471,14 @@ void Arduino_3D::computeTriangleDepths(Model *M, int8_t *vertices, uint8_t *draw
         depths[j] = z;
     }
 }
-// Sorts triangles from front to back to properly handle occlusions
-// Bubble sort is in fact the efficient solution here. 
-// It is O(N) for sorted data, and requires no additional memory to sort. 
-// Triangles remain mostly sorted as object rotates.
+
+/**
+ *
+ * Sort triangles from front to back to properly handle occlusions. Bubble sort
+ * is in fact the efficient solution here. It is O(N) for sorted data, and 
+ * requires no additional memory to sort. Triangles remain mostly sorted as 
+ * object rotates.
+ */
 void Arduino_3D::updateDrawingOrder(Model *M, int8_t *vertices, uint8_t *draw_order) {
     if (draw_order==NULL) return;
     uint16_t nt = M->NFaces;
@@ -402,8 +510,9 @@ void Arduino_3D::updateDrawingOrder(Model *M, int8_t *vertices, uint8_t *draw_or
 ////////////////////////////////////////////////////////////////////////
 
 
-/*  Computes convex combination of color1 and color2 with weight
- *  Weight is normalizes s.t. [0,1] maps to [0,256]
+/**
+ * Computes convex combination of color1 and color2 with weight
+ * Weight is normalizes s.t. [0,1] maps to [0,256]
  */
 uint16_t Arduino_3D::interpolate(uint8_t color1, uint8_t color2, uint8_t alpha) {
   // The clean way: break out the RGB components and reassemble
@@ -411,7 +520,9 @@ uint16_t Arduino_3D::interpolate(uint8_t color1, uint8_t color2, uint8_t alpha) 
 }
 
 
-// Horizontal fill of a segment with color interpolation
+/**
+ * Horizontal fill of a segment with color interpolation
+ */
 void Arduino_3D::interpolateFlood(uint16_t y, uint16_t i, uint16_t stop, uint16_t length, uint8_t color1, uint8_t color2)
 {
     uint8_t flag  = DITHERED_MASK_FLAG(y);
@@ -429,8 +540,9 @@ void Arduino_3D::interpolateFlood(uint16_t y, uint16_t i, uint16_t stop, uint16_
     }
 }
 
-// Fast horizontal line supporting overdraw and interpolation
-// Does not support masking
+/**
+ * Horizontal fill of a segment with color interpolation
+ */
 void Arduino_3D::interpolateFastHLine(int16_t x, int16_t y, uint8_t length, uint8_t color1, uint8_t color2) {
     if (length<1) return;
     #ifdef DO_CLIP
@@ -450,7 +562,6 @@ void Arduino_3D::interpolateFastHLine(int16_t x, int16_t y, uint8_t length, uint
     int stop =x+length;
     int i=x;
     
-
     uint8_t mask_test = DITHERED_MASK_FLAG(y);
     uint8_t background_mask = (background_color>>8) & QUICK_COLOR_MASK;
     
@@ -489,10 +600,14 @@ void Arduino_3D::interpolateFastHLine(int16_t x, int16_t y, uint8_t length, uint
     }
 }
 
-// Shade a triangle with three colors
-// Supports optional overdraw rendering
-// Does not support masking -- masking is typically used to erases so
-// will not be needed here.
+/**
+ * Fast horizontal line supporting overdraw and interpolation
+ * Does not support masking
+ * Shade a triangle with three colors
+ * Supports optional overdraw rendering
+ * Does not support masking -- masking is typically used to erases so
+ * will not be needed here.
+ */
 void Arduino_3D::shadeTriangle ( 
           int16_t x0, int16_t y0,
 		  int16_t x1, int16_t y1,

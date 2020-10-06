@@ -363,7 +363,7 @@ void cube() {
   abuff1[8] = 50;
 
   int previous_frame_valid = 0;
-  float ddx=0,ddy=0,dddx=0,dddy=0,ddddx=0,ddddy=0;
+  float d2x=0,d2y=0,d3x=0,d3y=0,d4x=0,d4y=0;
   while (1) 
   {
     CONTROLPORT=0b11111111;
@@ -387,14 +387,18 @@ void cube() {
     if (dy<-MAXD) dy=-MAXD;
     if (dx> MAXD) dx=MAXD;
     if (dy> MAXD) dy=MAXD;
+    
+    // Small bias so cube rotates even if touch not working
+    dx += 0.001f;
+    dy += 0.0014f;
 
-    // add some damping
-    ddx  = ddx *ALPHA+BETA*dx;
-    ddy  = ddy *ALPHA+BETA*dy;
-    dddx = dddx*ALPHA+BETA*ddx;
-    dddy = dddy*ALPHA+BETA*ddy;
-    ddddx = ddddx*ALPHA+BETA*dddx;
-    ddddy = ddddy*ALPHA+BETA*dddy;
+    // Dampen mouse input to reduce jitter
+    d2x = d2x*ALPHA+BETA*dx;
+    d2y = d2y*ALPHA+BETA*dy;
+    d3x = d3x*ALPHA+BETA*d2x;
+    d3y = d3y*ALPHA+BETA*d2y;
+    d4x = d4x*ALPHA+BETA*d3x;
+    d4y = d4y*ALPHA+BETA*d3y;
    
     // Draw next frame
 
@@ -403,10 +407,10 @@ void cube() {
 
     // Draw the axis.
     // First, we perform a rotation on the axis. 
-    float cdx = cos(ddddx);
-    float sdx = sin(ddddx);
-    float cdy = cos(ddddy);
-    float sdy = sin(ddddy);
+    float cdx = cos(d4x);
+    float sdx = sin(d4x);
+    float cdy = cos(d4y);
+    float sdy = sin(d4y);
 
     uint16_t colors[3] = {RED,GREEN,BLUE};
     for (int j=0; j<3; j++) {
