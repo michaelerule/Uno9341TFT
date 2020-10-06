@@ -53,6 +53,7 @@ Draw Rounded|145428|36440|3.99|38116|3.82
 Fill Rounded|3405668|519204|6.56|504784|6.75
 
 Basic Drawing benchmarks: `./exammples/self_contained_Uno9341TFT_graphics_test`
+
 Fast Drawing benchmarks: `./exammples/self_contained_Uno9341TFT_graphics_test_fast_commands`
 
 ---------------------------------------------------------------------------
