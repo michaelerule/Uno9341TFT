@@ -165,12 +165,11 @@ void Arduino_TFTLCD::fastFlood(uint8_t color, uint16_t length) {
 /**
  * Very fast flood routine.
  * 
- * TODO: Is there a bug? Might render wrong colors on Leonardo? 
  * TODO: This may render the wrong colors (due to port bit to pin permutation)
  *   if the user passes a color with matching high and low bytes that is *not*
  *   intended to be a "fast" color.
  *
- * @param coloe 16-bit color code
+ * @param color 16-bit color code
  * @param len number of pixels to flood-fill
  */
 void Arduino_TFTLCD::flood(uint16_t color, uint32_t len) {
@@ -251,8 +250,8 @@ void Arduino_TFTLCD::fillRect(int16_t x1, int16_t y1, int16_t w, int16_t h,
         if(w<=0||h<=0||x1>=_width||y1>=_height||x2<0||y2<0) return;
         if(x1<0) {w+=x1;x1=0;}
         if(y1<0) {h+=y1;y1=0;}
-        if(x2>=_width) {x2=_width-1;w=x2-x1+1;}
-        if(y2>=_height){y2=_height-1;h=y2-y1+1;}
+        if(x2>=_width ) {x2=_width -1;w=x2-x1+1;}
+        if(y2>=_height) {y2=_height-1;h=y2-y1+1;}
     #endif
     SET_XY_RANGE(x1,x2,y1);
     flood(color, (uint32_t)w * (uint32_t)h);
