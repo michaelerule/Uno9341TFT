@@ -76,13 +76,37 @@ All text above must be included in any redistribution.
 
 #### Color filling: 
 
-The 9351 TFT LCD displays use an 8-bit data bus to write/read color data and send configuration commands. 
+The ILI-9341 TFT accepts color data over an 8-bit bus. A 16-bit color is sent by sending the top ("high") 8 bits of color data first, then following up with the lower 8 bits of color data. 
+The default color format is `RGB565`, that is, 5 bits of red, 6 bits of green, and 5 bits of blue color data packed as `RRRRRGGGGGGBBBBB` in an unsigned 16-bit integer. 
 
-The 9351 displays operate in 16-bit color, so the low/high bytes of each color are sent separately. This means that we need to constantly switch the Arduino pin states from the high and low byte of the color data when filling part of the screen. This is expensive. 
+If we want to send a full 16-bit color, we need to pause to update the output pin values on the 
+ILI-9341's 8-bit data bus on every pixel. This takes a few cycles. We can draw faster if we use colors for which the low and high bytes are the same. Then we only need to strobe the data clock for as many pixels as we need to draw. 
 
-The Uno9341TFT library optimizes this by detecting when the high and low byte of the color are the same. It configures the output lines to this byte, and then strobes the data clock twice for each pixel to send. The optimized `flood` routine also unrolls the loop for testing how many pixels to send.
+On the Arduino Uno, the ILI-9341 TFT screen's data line are split over `PORTB` and `PORTD`. The top 6 bits of `PORTD` are used for the top 6 bits of the color bus, and the bottom 2 bits of `PORTB` are used for the lower 2 bits of the color bus. 
+Too eek out every bit of performance, we can leave the data lines on `PORTB` set to some fixed value, and only update the bits on `PORTD`. This let's us manipulate the color bits `RRRRRGxxGGGBBBxx`. 
 
-The subset of 16-bit colors with matching high and low bytes are caled "fast colors", and the pallet is less restrictive than one might expect. Six "fast" color maps for shading 3D surfaces are defined in [color_maps.h](https://github.com/michaelerule/Uno9341TFT/blob/master/color_maps.h)
+
+**Choosing the flag bit:** To handle 3D calculations, we also need to store a 1-bit flag in the color data.
+It's best to use bit 3 for this: Bits 0 and 1 aren't written, bits 1, 4, 7 affect the highest bits of GRB, and bits 5 and 6 affect higher-order bits of the red channel making the flag too noticeable.
+Still, toiggling bit 3 noticeably changes the color, and alternating the flag bit on eve/odd scanline reduces the visible flickering across sucessive frames. 
+
+Here is the 32-bit "fast" color pallet, with the flag-bit alternating-scanline effect renderd, for all four options for the fixed, low-order bits on `PORTB`. Personally, I find the scanline effect charming and reminiscent of older, low-resolution CRT monitors:
+
+<img src="https://raw.githubusercontent.com/michaelerule/Uno9341TFT/master/test.png">
+
+
+Six "fast" color maps for shading 3D surfaces are defined in [color_maps.h](https://github.com/michaelerule/Uno9341TFT/blob/master/color_maps.h)
+
+> ##### ***Aside: Alternative possible pin configurations for better fast-draw color***
+> 
+> It would also be possible change the shield pinout such that the ILI-9341 TFT's 8-bit bus aligns with one of the UNO's 8-bit IO ports. `PORTB` and `PORTC` are the only two 8-bit buses exposed on the Ardunio Uno. These are the options: 
+> 
+>  1. Use all pins on `PORTD`: This conflicts with using `D0` and `D1` as the receive and transmit lines of the serial port. You will want to disabl the USART hardware on the AtMega. Since these lines are used to communicate between the Arduino and the host computer, and used to upload programs, care must be taken not to write color data when the serial line is in use. This could require adding a switch to toggle the display code, and physically disconnecting the Arduino from any USB host while the display is rendering. 
+> 
+>  2. Use all pins on `PORTC`: This will sacrifice your ability to read analog values, and hence you will be unable to read touch-schreen output. Since the Adafruit libraries and shield configuration also use `PORTC` for command codes, you will need to re-write this code base to use other pins for commands. 
+> 
+> Generally, option (1) would be the most viable. You can add a "sleep" period to your sketch that waits a few seconds before starting any display code. This would give you few seconds after resetting the Arduino where normal serial communication can be expected. If the Arduino is attached to a USB host that does not react badly to arbitrary serial input, the spurious serial data related to display driving will be safely ignored. 
+
 
 
 #### `setAddrWindow`
