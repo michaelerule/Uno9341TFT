@@ -1,4 +1,4 @@
-# 3D rendering library for Arduino Uno and TFT display
+# Fast drawing and 3D rendering library for Arduino Uno and TFT display
 <img src="https://raw.githubusercontent.com/michaelerule/Uno9341TFT/master/Montage.png">
 
 This is a derivative of the Adafruit graphics libraries. I have copied the original README files below. To achieve the requisite performance optimizations, this library is no longer compatible with multiple LCD displays. This project is intended only for use of the 9341 TFT LCD display with the Arduino Uno.
