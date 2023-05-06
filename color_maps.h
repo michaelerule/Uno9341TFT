@@ -1,6 +1,6 @@
 #define NCOLORS 16
 
-PROGMEM const uint8_t reddish[16] = {
+PROGMEM const uint8_t reddish[NCOLORS] = {
     0b00100000,
     0b01000000,
     0b01100000,
@@ -19,7 +19,7 @@ PROGMEM const uint8_t reddish[16] = {
     0b11110111,
 };
 
-PROGMEM const uint8_t greenish[16] = {
+PROGMEM const uint8_t greenish[NCOLORS] = {
     0b00100000,
     0b00100001,
     0b00100010,
@@ -38,7 +38,7 @@ PROGMEM const uint8_t greenish[16] = {
     0b11110111,
 };
 
-PROGMEM const uint8_t greyish[16] = {
+PROGMEM const uint8_t greyish[NCOLORS] = {
     0b00000000,
     0b00000000,
     0b00000000,
@@ -57,7 +57,7 @@ PROGMEM const uint8_t greyish[16] = {
     0b11110111,
 };
 
-PROGMEM const uint8_t pinkish[16] = {
+PROGMEM const uint8_t pinkish[NCOLORS] = {
     0b00100000,
     0b01000000,
     0b01000001,
@@ -76,7 +76,7 @@ PROGMEM const uint8_t pinkish[16] = {
     0b11110100,
 };
 
-PROGMEM const uint8_t brownish[16] = {
+PROGMEM const uint8_t brownish[NCOLORS] = {
     0b00100000,
     0b00110000,
     0b01000000,
