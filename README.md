@@ -72,7 +72,7 @@ All text above must be included in any redistribution.
 
 ---------------------------------------------------------------------------
 
-## Optimisations
+## Optimizations
 
 #### Color filling: 
 
@@ -94,6 +94,7 @@ Here is the 32-bit "fast" color pallet, with the flag-bit alternating-scanline e
 
 <img src="https://raw.githubusercontent.com/michaelerule/Uno9341TFT/master/test.png">
 
+*At present, this library does set the low two bits of `PORTB` when writing "fast" colors, so all of the colors above are accessible. The speedup from skipping these bits is extremely small, but might be desired in some cases. Modify `Arduino_TFTLCD::flood` in the location where the `WRITE_BUS` macro is used, if you want to experiment.*
 
 Six "fast" color maps for shading 3D surfaces are defined in [color_maps.h](https://github.com/michaelerule/Uno9341TFT/blob/master/color_maps.h)
 
